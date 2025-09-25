@@ -14,7 +14,7 @@ export default function Home() {
         Register
       </Link>
       <Link
-        href="/Login"
+        href="/login"
         className="ml-8 mt-8 inline-block bg-transparent px-3 py-3 font-medium text-white transition-transform hover:scale-105"
       >
         Login
