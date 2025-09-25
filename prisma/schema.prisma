@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User roles for potential admin features (so Reagan can't cheat :D)
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id                 Int                @id @default(autoincrement())
+  username           String             @unique // Unique username
+  email              String             @unique // For login
+  password           String             // Hashed password
+  salt               String             // Salt for the password
+  avatarUrl          String?            // Optional: for profile picture on leaderboard
+
+  roster             Int[]              // Array of Pokémon IDs
+  arenasCompleted    Int                @default(0) // Tracks linear game progression
+
+  role               Role               @default(USER)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  sessions           Session[]          // User active session
+  leaderboardEntries LeaderboardEntry[] // User score on leaderboard
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relation to User
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LeaderboardEntry {
+  id        Int      @id @default(autoincrement())
+  score     Int
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([score]) // Indexing score for sorting
+}
