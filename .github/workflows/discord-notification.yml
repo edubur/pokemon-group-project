@@ -1,0 +1,46 @@
+# .github/workflows/discord-notification.yml
+
+name: Discord Pull Request Notification
+
+on:
+  pull_request:
+    types: [opened] # This workflow runs only when PR is opened
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Notification
+        uses: actions/checkout@v3 # We need to checkout the repo to have context
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
+          PULL_REQUEST_URL: ${{ github.event.pull_request.html_url }}
+          PULL_REQUEST_AUTHOR: ${{ github.event.pull_request.user.login }}
+          AUTHOR_ICON_URL: ${{ github.event.pull_request.user.avatar_url }}
+
+        run: |
+          # JSON payload for Discord message
+          JSON_PAYLOAD=$(cat <<EOF
+          {
+            "content": "Hey team, a new pull request is ready for review!",
+            "embeds": [{
+              "title": "${PULL_REQUEST_TITLE}",
+              "url": "${PULL_REQUEST_URL}",
+              "description": "Submitted by **${PULL_REQUEST_AUTHOR}**. Please review the changes.",
+              "color": 65280,
+              "author": {
+                "name": "${PULL_REQUEST_AUTHOR}",
+                "icon_url": "${AUTHOR_ICON_URL}"
+              },
+              "footer": {
+                "text": "Sent via GitHub Actions"
+              },
+              "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')"
+            }]
+          }
+          EOF
+          )
+
+          # Send the notification using curl
+          curl --fail -X POST -H "Content-Type: application/json" -d "$JSON_PAYLOAD" "$DISCORD_WEBHOOK_URL"
