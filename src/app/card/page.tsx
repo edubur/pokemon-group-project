@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import PokemonCard from "@/components/PokemonCard";
-import TeamBar from "@/components/TeamBar";
-import { useTeam } from "@/hooks/useTeam";
-import { Pokemon } from "@/types";
+import PokemonCard from "@/features/card/components/PokemonCard";
+import TeamBar from "@/features/card/components/TeamBar";
+import { useTeam } from "@/features/card/hooks/useTeam";
+import { Pokemon } from "@/features/card/type/types";
 
 const PAGE_SIZE = 50; // number of Pokémon per batch
 

@@ -1,4 +1,4 @@
-import { Pokemon } from "../types";
+import { Pokemon } from "../type/types";
 
 interface Props {
   team: Pokemon[];

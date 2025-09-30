@@ -1,6 +1,6 @@
 "use client";
 
-import { Pokemon } from "../types";
+import { Pokemon } from "../type/types";
 import Link from "next/link";
 
 interface Props {
