@@ -1,4 +1,3 @@
-// Register form state type for server actions
 export type RegisterFormState = {
   message?: string;
   errors?: {
@@ -8,8 +7,7 @@ export type RegisterFormState = {
     _form?: string[];
   };
 };
-import { z } from "zod";
-// Login form state type for server actions
+
 export type LoginFormState = {
   message?: string;
   errors?: {

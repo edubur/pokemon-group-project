@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session"; // Get current user session
+import { getSession } from "@/shared/lib/session/session";
 import { redirect } from "next/navigation";
 import RegisterForm from "@/features/auth/components/RegisterForm";
 
@@ -7,9 +7,9 @@ export default async function RegisterPage() {
   // Check for active session
   const session = await getSession();
 
-  // If user is logged in redirect to profile page
+  // If user is logged in redirect to game page
   if (session) {
-    redirect("/profile");
+    redirect("/gamehub");
   }
 
   // If no session show registration form

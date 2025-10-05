@@ -2,29 +2,21 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { createSession } from "@/lib/session"; // Creates user session
-import comparePassword from "@/utils/comparePassword"; // Compares plaintext vs hashed password
-import generateSalt from "@/utils/saltHelper"; // Generates random salt
-import hashPassword from "@/utils/hashPassword"; // Hashes password with salt
+import { prisma } from "@/shared/lib/prisma/prisma";
+import { createSession } from "@/shared/lib/session/session";
+import comparePassword from "@/shared/lib/password/comparePassword";
+import generateSalt from "@/shared/lib/password/saltHelper";
+import hashPassword from "@/shared/lib/password/hashPassword";
 import type { LoginFormState, RegisterFormState } from "./types";
+import { deleteSession } from "@/shared/lib/session/session";
 
-/**
- * Schema for login form fields
- */
+// Schema for login form fields
 const loginSchema = z.object({
   email: z.email({ message: "Invalid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
 });
 
-/**
- * Login server action
- * - Validates login form data
- * - Finds user in database
- * - Verifies password using salt + hash
- * - Creates session if credentials are correct
- * - Redirects to home page on success
- */
+// Login server action
 export async function loginAction(
   prevState: LoginFormState,
   formData: FormData
@@ -71,26 +63,17 @@ export async function loginAction(
   }
 
   // Redirect user to home page
-  redirect("/");
+  redirect("/gamehub");
 }
 
-/**
- * Schema for validating registration form fields
- */
+// Schema for validating registration form fields
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters."),
   email: z.email("Invalid email format."),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
-/**
- * Register server action
- * - Validates form input with Zod
- * - Checks for duplicate email
- * - Hashes and salts password
- * - Creates new user in database
- * - Redirects to login page on success
- */
+// Register server action
 export async function registerAction(
   prevState: RegisterFormState,
   formData: FormData
@@ -140,4 +123,17 @@ export async function registerAction(
 
   // Redirect to login page after registration
   redirect("/login");
+}
+
+// Logs out the current user
+export async function logout() {
+  try {
+    // Delete the user session
+    await deleteSession();
+  } catch (error) {
+    console.error("Logout failed:", error); // Log error if session deletion fails
+  }
+
+  // Redirect user to homepage
+  redirect("/");
 }

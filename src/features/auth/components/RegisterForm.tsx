@@ -1,48 +1,44 @@
 "use client";
 
-import { useActionState } from "react"; // Hook to manage server actions
-import { registerAction } from "../actions"; // Server action for registration
-import { SubmitButton } from "./SubmitButton"; // Reusable submit button with loading state
-import type { RegisterFormState } from "../types"; // Type for form state
+import { useActionState } from "react";
+import { registerAction } from "../actions";
+import { SubmitButton } from "../../../shared/components/ui/SubmitButton";
+import type { RegisterFormState } from "../types";
+import Link from "next/link";
 
-/**
- * RegisterForm
- * Uses useActionState to call registerAction
- * Displays validation errors returned from server
- * Provides inputs for all registration fields
- */
 export default function RegisterForm() {
-  const initialState: RegisterFormState = {}; // Initial empty state
-  const [state, formAction] = useActionState(registerAction, initialState); // Hook for form submission and state
+  const initialState: RegisterFormState = {};
+  const [state, formAction] = useActionState(registerAction, initialState);
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 bg-base-200">
+    <div className="relative min-h-screen flex items-center justify-center">
       <form
         action={formAction}
-        className="w-full max-w-md p-8 space-y-4 bg-base-100 rounded-xl shadow-lg"
+        className="relative z-40 w-full max-w-md p-8 space-y-4 bg-gray-900/60 backdrop-blur-md rounded-xl border border-yellow-500/20 shadow-xl"
         noValidate
       >
-        <h2 className="text-2xl font-bold text-center">Create an Account!</h2>
+        {/* Form heading */}
+        <h2 className="text-2xl font-bold text-center text-yellow-400 drop-shadow-lg">
+          Create an Account!
+        </h2>
 
-        {/* Display general error message */}
+        {/* Global error message if action fails */}
         {state?.message && !state.errors && (
           <div className="alert alert-error">{state.message}</div>
         )}
 
-        {/* Username input */}
+        {/* Username input field */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Username</span>
+            <span className="label-text text-amber-200/80">Username</span>
           </label>
           <input
             type="text"
             name="username"
             required
-            className={`input input-bordered w-full ${
-              state.errors?.username ? "input-error" : ""
-            }`}
+            className="input input-bordered w-full border-yellow-400/40 focus:border-yellow-400 focus:ring-yellow-400"
           />
-          {/* Username error */}
+          {/* Username error message */}
           {state.errors?.username && (
             <span className="text-error text-xs mt-1">
               {state.errors.username[0]}
@@ -50,20 +46,18 @@ export default function RegisterForm() {
           )}
         </div>
 
-        {/* Email input */}
+        {/* Email input field */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Email</span>
+            <span className="label-text text-amber-200/80">Email</span>
           </label>
           <input
             type="email"
             name="email"
             required
-            className={`input input-bordered w-full ${
-              state.errors?.email ? "input-error" : ""
-            }`}
+            className="input input-bordered w-full border-yellow-400/40 focus:border-yellow-400 focus:ring-yellow-400"
           />
-          {/* Email error */}
+          {/* E-Mail error message */}
           {state.errors?.email && (
             <span className="text-error text-xs mt-1">
               {state.errors.email[0]}
@@ -71,21 +65,19 @@ export default function RegisterForm() {
           )}
         </div>
 
-        {/* Password input */}
+        {/* Password input field */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Password</span>
+            <span className="label-text text-amber-200/80">Password</span>
           </label>
           <input
             type="password"
             name="password"
             required
-            className={`input input-bordered w-full ${
-              state.errors?.password ? "input-error" : ""
-            }`}
             autoComplete="new-password"
+            className="input input-bordered w-full border-yellow-400/40 focus:border-yellow-400 focus:ring-yellow-400"
           />
-          {/* Password error */}
+          {/* Password error message */}
           {state.errors?.password && (
             <span className="text-error text-xs mt-1">
               {state.errors.password[0]}
@@ -97,11 +89,11 @@ export default function RegisterForm() {
         <SubmitButton label="Sign Up" loadingLabel="Signing Up..." />
 
         {/* Link to login page */}
-        <div className="text-center text-sm">
-          <span className="text-gray-400">Already have an account? </span>
-          <a href="/login" className="link link-primary">
+        <div className="text-center text-sm text-amber-200/80">
+          Already have an account?{" "}
+          <Link href="/login" className="text-yellow-400 hover:text-yellow-300">
             Login
-          </a>
+          </Link>
         </div>
       </form>
     </div>
