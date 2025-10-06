@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useBattleTeam, BattlePokemon } from "../hooks/useBattleTeam";
+import { useBattleTeam } from "../hooks/useBattleTeam";
 import { useEnemyTeam } from "../hooks/useEnemyTeam";
 import PokemonDisplay from "./PokemonDisplay";
 import MessageLog from "./MessageLog";
@@ -42,9 +42,6 @@ export default function BattleScreen() {
     setMenu("attacks");
   }
 
-  function getNextAliveIndex(arr: BattlePokemon[], current: number) {
-    return arr.findIndex((p, i) => p.hp > 0 && i !== current);
-  }
 
   function handleAttack(move: string) {
     if (isBusy || !player || !enemy) return;
