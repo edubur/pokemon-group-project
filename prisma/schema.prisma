@@ -20,9 +20,9 @@ model User {
   email              String             @unique // For login
   password           String             // Hashed password
   salt               String             // Salt for the password
-  avatarUrl          String?            // Optional: for profile picture on leaderboard
+  avatarUrl          String?
 
-  roster             Int[]              // Array of Pokémon IDs
+  roster             Int[]              // Array of Pokemon IDs
   arenasCompleted    Int                @default(0) // Tracks linear game progression
 
   role               Role               @default(USER)
@@ -48,7 +48,7 @@ model LeaderboardEntry {
   id        Int      @id @default(autoincrement())
   score     Int
   createdAt DateTime @default(now())
-  userId    Int
+  userId    Int      @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([score]) // Indexing score for sorting

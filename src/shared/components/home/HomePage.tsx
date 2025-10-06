@@ -1,0 +1,113 @@
+import Link from "next/link";
+import PokeballButton from "@/shared/components/ui/PokeballButton";
+
+export default function HomePageComponent() {
+  return (
+    <div className="relative min-h-screen">
+      {/* Settings Icon */}
+      <div className="absolute top-0 right-0 z-50 p-6 sm:p-8">
+        <Link
+          href="/settings"
+          className="text-white transition-colors hover:text-yellow-400"
+          aria-label="Settings"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+        </Link>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-40">
+        {/* Hero Section */}
+        <div className="hero min-h-screen text-neutral-content">
+          <div className="hero-content text-center">
+            <div className="max-w-4xl">
+              {/* Hero Content */}
+              <h1 className="mb-8 text-5xl font-bold text-yellow-400 drop-shadow-lg md:text-7xl">
+                The Pokemon Arena Awaits
+              </h1>
+
+              <p className="mb-2 text-lg text-amber-200/70 md:text-2xl">
+                Assemble your ultimate team, challenge formidable arenas, and
+                climb <br /> the leaderboard to prove you're the very best.
+              </p>
+
+              <p className="mb-15 text-lg text-amber-200/70 md:text-2xl">
+                Your journey to become a Pokemon Master starts now.
+              </p>
+
+              <div className="grid md:grid-cols-3 gap-4 mb-8">
+                <div className="text-center p-4">
+                  <h3 className="text-xl font-bold mb-2 text-yellow-400/80">
+                    Build Your Team
+                  </h3>
+                  <p className="text-amber-200/70">
+                    Select your roster of powerful Pokemon to create the
+                    ultimate strategic lineup.
+                  </p>
+                </div>
+
+                <div className="text-center p-4">
+                  <h3 className="text-xl font-bold mb-2 text-yellow-400/80">
+                    Conquer Arenas
+                  </h3>
+                  <p className="text-amber-200/70">
+                    Enter Ranked Mode and face challenging arenas, earning
+                    points for each victory.
+                  </p>
+                </div>
+
+                <div className="text-center p-4">
+                  <h3 className="text-xl font-bold mb-2 text-yellow-400/80">
+                    Climb the Ranks
+                  </h3>
+                  <p className="text-amber-200/70">
+                    Your best score is recorded on the leaderboard. Compete
+                    against others for the #1 spot.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-20 flex flex-col items-center justify-center gap-6 sm:flex-row">
+                {/* Link to register */}
+                <Link
+                  href="/register"
+                  className="group inline-flex items-center gap-4 rounded-2xl bg-amber-200/70 px-6 py-2 text-xl font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400"
+                >
+                  <PokeballButton size="h-8 w-8" />
+                  <span>Get Started</span>
+                </Link>
+
+                {/* Link to login */}
+                <Link
+                  href="/login"
+                  className="group inline-flex items-center gap-4 rounded-2xl bg-amber-200/70 px-6 py-2 text-xl font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400"
+                >
+                  <PokeballButton size="h-8 w-8" />
+                  <span>Login</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
