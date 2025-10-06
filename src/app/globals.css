@@ -1,3 +1,78 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Keyframes */
+@keyframes shake {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+  75% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@layer components {
+  .pokeball-button {
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 9999px;
+    border: 2px solid black;
+    background-color: white;
+    transition: transform 0.15s ease;
+  }
+
+  .pokeball-button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background-color: #f44336;
+    border-bottom: 4px solid black;
+  }
+
+  .pokeball-button::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%;
+    height: 30%;
+    background-color: white;
+    border: 4px solid black;
+    border-radius: 9999px;
+    box-shadow: 0 0 0 4px white inset;
+    transition: box-shadow 0.3s ease;
+  }
+
+  /* Trigger shake on direct hover or when .group is hovered */
+  .pokeball-button:hover,
+  .group:hover .pokeball-button {
+    animation: shake 0.5s infinite;
+  }
+
+  /* Stops animation and scale down when pressed */
+  .pokeball-button:active,
+  .group:active .pokeball-button {
+    animation: none;
+    transform: scale(0.95);
+  }
+
+  /* Glow effect */
+  .pokeball-button:hover::after,
+  .group:hover .pokeball-button::after {
+    box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8), 0 0 0 4px white inset;
+  }
+}

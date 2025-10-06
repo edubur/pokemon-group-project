@@ -30,9 +30,7 @@ export function encrypt(text: string): string {
   )}`;
 }
 
-/**
- * Decrypts a string previously encrypted with encrypt()
- */
+// Decrypts a string previously encrypted with encrypt()
 export function decrypt(hash: string): string {
   try {
     const [ivHex, authTagHex, encryptedHex] = hash.split(":");
@@ -57,9 +55,7 @@ export function decrypt(hash: string): string {
   }
 }
 
-/**
- * Generates a SHA-256 hash of query string
- */
+// Generates a SHA-256 hash of query string
 export function hashQuery(text: string): string {
   return crypto.createHash("sha256").update(text).digest("hex");
 }

@@ -1,0 +1,234 @@
+"use client";
+
+import { useRef } from "react";
+import type { User } from "@prisma/client";
+import Link from "next/link";
+import AvatarUploadModal from "@/features/profile-picture/components/AvatarUpload";
+import { Pokemon } from "@/features/team-selection/types";
+
+interface LeaderboardEntry {
+  id: number;
+  score: number;
+  user: {
+    id: number;
+    username: string;
+    avatarUrl?: string | null;
+  };
+}
+
+export default function GamePageClient({
+  user,
+  personalBest,
+  team,
+  rank,
+  leaderboard,
+}: {
+  user: User | null;
+  personalBest: number;
+  team: Pokemon[];
+  rank: number | string;
+  leaderboard: LeaderboardEntry[];
+}) {
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const handleAvatarClick = () => dialogRef.current?.showModal();
+
+  const avatarSrc = user?.avatarUrl || "/default_profile_picture.png";
+
+  return (
+    <>
+      <main className="relative min-h-screen overflow-hidden p-4 sm:p-6 lg:p-8 text-amber-200/80">
+        {/* Background */}
+        <div
+          className="absolute inset-0 z-10 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url("/background.png")',
+            filter: "blur(35px)",
+            transform: "scale(1.1)",
+          }}
+        ></div>
+        <div className="absolute inset-0 z-20 bg-black opacity-60"></div>
+        <div className="absolute inset-0 z-30">
+          <div className="absolute inset-0 bg-gradient-to-br via-yellow-500/10 opacity-50"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl via-orange-500/10 opacity-50"></div>
+        </div>
+
+        {/* Main Content */}
+        <div className="relative z-40 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              {/* Profile */}
+              <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm">
+                <div className="card-body">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="avatar online cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={handleAvatarClick}
+                    >
+                      <div className="w-16 rounded-full border border-yellow-400/40">
+                        <img src={avatarSrc} alt="Player Avatar" />
+                      </div>
+                    </div>
+                    <div>
+                      <h2 className="card-title text-xl text-yellow-400">
+                        {user?.username || "Player"}
+                      </h2>
+                      <span className="text-sm text-amber-200/60">
+                        Pokemon Trainer
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="divider my-2 border-yellow-500/20"></div>
+
+                  {/* Rank + Points */}
+                  <div className="stats stats-vertical shadow-inner bg-gray-800/70 border border-yellow-500/10">
+                    <div className="stat text-amber-200/80">
+                      <div className="stat-title text-yellow-400/80">
+                        Personal Best
+                      </div>
+                      <div className="stat-value text-yellow-400">
+                        {personalBest.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="stat text-amber-200/80">
+                      <div className="stat-title text-yellow-400/80">
+                        Current Rank
+                      </div>
+                      <div className="stat-value text-yellow-400">{rank}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Leaderboard */}
+              <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm">
+                <div className="card-body">
+                  <h2 className="card-title mb-4 text-yellow-400">
+                    Leaderboard Top 5
+                  </h2>
+
+                  {leaderboard.length > 0 ? (
+                    <div className="space-y-4">
+                      {leaderboard.map((entry, idx) => (
+                        <div
+                          key={entry.id}
+                          className="flex items-center gap-4 bg-gray-800/60 rounded-xl p-2 border border-yellow-500/10"
+                        >
+                          <div className="font-bold text-lg text-yellow-400 w-6">
+                            {idx + 1}
+                          </div>
+                          <div className="avatar">
+                            <div className="w-10 rounded-full border border-yellow-500/20 overflow-hidden">
+                              <img
+                                src={
+                                  entry.user.avatarUrl ||
+                                  "/default_profile_picture.png"
+                                }
+                                alt={entry.user.username}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex-grow font-semibold text-amber-200/80">
+                            {entry.user.username}
+                          </div>
+                          <div className="text-sm font-medium text-yellow-400/80">
+                            {entry.score.toLocaleString()} pts
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-amber-200/70">
+                      No leaderboard entries yet.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Ranked */}
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm text-center">
+                <div className="card-body items-center">
+                  <h2 className="card-title text-3xl font-bold text-yellow-400">
+                    Ranked
+                  </h2>
+                  <p className="my-4 text-amber-200/80">
+                    Face 10 random arenas and fight for the top leaderboard
+                    spot!
+                  </p>
+                  <div className="card-actions">
+                    <button className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400">
+                      PLAY
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Unranked */}
+              <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm text-center">
+                <div className="card-body items-center">
+                  <h2 className="card-title text-3xl font-bold text-yellow-400">
+                    Unranked
+                  </h2>
+                  <p className="my-4 text-amber-200/80">
+                    Face 10 random arenas to test your Team before jumping into
+                    ranked!
+                  </p>
+                  <div className="card-actions">
+                    <button className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400">
+                      PLAY
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Team */}
+              <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm">
+                <div className="card-body items-center">
+                  <h2 className="card-title mb-4 text-2xl text-yellow-400">
+                    Your Team
+                  </h2>
+                  <div className="flex flex-row flex-wrap gap-12 justify-center items-center">
+                    {team && team.length > 0 ? (
+                      team.map((pokemon) => (
+                        <div
+                          key={pokemon.id}
+                          className="flex flex-col items-center gap-2"
+                        >
+                          <div className="avatar">
+                            <div className="w-20 rounded-full border border-yellow-400/30">
+                              <img src={pokemon.image} alt={pokemon.name} />
+                            </div>
+                          </div>
+                          <div className="text-sm font-bold capitalize text-amber-200/80">
+                            {pokemon.name}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="w-full text-center">
+                        <p className="text-sm text-amber-200/60">
+                          You have no Pokémon in your team.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="card-actions mt-4">
+                    <Link href="/team-selection">
+                      <button className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400">
+                        EDIT TEAM
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <AvatarUploadModal dialogRef={dialogRef} />
+    </>
+  );
+}

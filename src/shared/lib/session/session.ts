@@ -1,14 +1,12 @@
 import "server-only"; // Runs only on server
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/shared/lib/prisma/prisma";
 
 const sessionCookieName = "session_token";
 
-/**
- * Creates a new session for user
- * Stores session token in database and sets HttpOnly cookie
- */
+// Creates a new session for user
+// Stores session token in database and sets HttpOnly cookie
 export async function createSession(userId: number) {
   // Session expires after 7 days
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -32,10 +30,7 @@ export async function createSession(userId: number) {
   });
 }
 
-/**
- * Gets current session based on cookie
- * Returns null if no valid session exists
- */
+// Gets current session based on cookie
 export async function getSession() {
   const cookieStore = await cookies();
 
@@ -65,10 +60,7 @@ export async function getSession() {
   return session;
 }
 
-/**
- * Deletes the current session on logout
- * Removes the session from database and clears cookie
- */
+// Deletes the current session on logout
 export async function deleteSession() {
   const cookieStore = await cookies();
   const token = cookieStore.get(sessionCookieName)?.value;
