@@ -12,6 +12,7 @@ export function useTeam(initialTeam: Pokemon[]) {
     const savedUnsavedTeam = localStorage.getItem("unsaved_team");
     if (savedUnsavedTeam) {
       setTeam(JSON.parse(savedUnsavedTeam));
+      setHasUnsavedChanges(true); // mark as unsaved because it's different from initial
     }
   }, []); // Empty dependency array ensures this runs only once
 
@@ -31,7 +32,7 @@ export function useTeam(initialTeam: Pokemon[]) {
       localStorage.setItem("unsaved_team", JSON.stringify(team));
       setHasUnsavedChanges(true);
     } else {
-      localStorage.removeItem("unsaved_team");
+      // Do NOT remove localStorage anymore
       setHasUnsavedChanges(false);
     }
   }, [team, initialTeam]);
@@ -49,10 +50,10 @@ export function useTeam(initialTeam: Pokemon[]) {
     setTeam((prev) => prev.filter((p) => p.id !== id));
   };
 
-  // Function to call after save
+  // onSaveSuccess no longer deletes localStorage
   const onSaveSuccess = () => {
-    localStorage.removeItem("unsaved_team");
     setHasUnsavedChanges(false);
+    // localStorage remains so battle can read it
   };
 
   return { team, addToTeam, removeFromTeam, hasUnsavedChanges, onSaveSuccess };
