@@ -1,4 +1,6 @@
-import BattleScreen from "@/features/battle/components/BattleScreen";
+"use client";
+
+import BattleScreen from "../../features/battle/components/BattleScreen";
 
 export default function BattlePage() {
   return <BattleScreen />;
