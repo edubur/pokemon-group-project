@@ -15,7 +15,6 @@ export default function TeamBar({
   onSave,
   hasUnsavedChanges,
 }: Props) {
-  if (team.length === 0) return null;
 
   return (
     <div
