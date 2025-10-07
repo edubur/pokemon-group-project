@@ -63,9 +63,12 @@ export async function createScore(_prev: unknown, formData: FormData) {
 
     revalidatePath("/leaderboard");
     return { ok: true, message: "Score submitted successfully!" };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to create score:", err);
-    return { ok: false, error: err?.message ?? "Unknown error" };
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
   }
 }
 
@@ -82,7 +85,6 @@ export async function getLeaderboard() {
         user: { select: { avatarUrl: true } },
       },
     });
-
 
     return entries.map((entry) => ({
       ...entry,

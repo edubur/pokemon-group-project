@@ -6,8 +6,7 @@ interface ArenaPageProps {
   };
 }
 
-export default async function ArenaPage({ params }: ArenaPageProps) {
-  const { arenaType } = await params;
-
+export default function ArenaPage({ params }: ArenaPageProps) {
+  const { arenaType } = params;
   return <BattleScene arenaType={arenaType} mode="ranked" />;
 }

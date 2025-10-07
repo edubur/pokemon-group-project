@@ -4,7 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { getSession } from "@/shared/lib/session/session";
 import { prisma } from "@/shared/lib/prisma/prisma";
 import { revalidatePath } from "next/cache";
-import { FormState, ProfilePictureFormState } from "./types";
+import { ProfilePictureFormState } from "./types";
 
 // Cloudinary
 cloudinary.config({
@@ -34,7 +34,7 @@ export async function updateProfilePictureAction(
 
   try {
     // Upload to Cloudinary
-    const result: any = await new Promise((resolve, reject) => {
+    const result: unknown = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
@@ -50,21 +50,33 @@ export async function updateProfilePictureAction(
     });
 
     // Update user avatar in database
-    await prisma.user.update({
-      where: { id: session.userId },
-      data: {
-        avatarUrl: result.secure_url,
-      },
-    });
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      "secure_url" in result &&
+  typeof (result as { secure_url?: unknown }).secure_url === "string"
+    ) {
+      await prisma.user.update({
+        where: { id: session.userId },
+        data: {
+          avatarUrl: (result as { secure_url: string }).secure_url,
+        },
+      });
 
-    // Revalidate game page
-    revalidatePath("/gamehub");
-    return {
-      success: true,
-      message: "Upload successful!",
-      url: result.secure_url,
-    };
-  } catch (error) {
+      // Revalidate game page
+      revalidatePath("/gamehub");
+      return {
+        success: true,
+        message: "Upload successful!",
+        url: (result as { secure_url: string }).secure_url,
+      };
+    } else {
+      return {
+        success: false,
+        message: "Upload failed: No secure_url returned.",
+      };
+    }
+  } catch {
     return { success: false, message: "Failed to upload image." };
   }
 }
@@ -87,7 +99,7 @@ export async function clearProfilePictureAction(): Promise<ProfilePictureFormSta
     revalidatePath("/gamehub");
 
     return { success: true, message: "Picture cleared." };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Failed to clear picture." };
   }
 }

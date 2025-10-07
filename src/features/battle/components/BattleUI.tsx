@@ -40,15 +40,8 @@ export default function BattleScene({
     stateRef.current = state;
   }, [state]);
 
-  const {
-    phase,
-    playerAction,
-    message,
-    log,
-    isFainting,
-    playerIndex,
-    enemyIndex,
-  } = state;
+  const { phase, playerAction, log, isFainting, playerIndex, enemyIndex } =
+    state;
   // Prevents user inputs during animations or after game over
   const isBusy = phase === "animating" || phase === "game_over";
 
@@ -64,70 +57,75 @@ export default function BattleScene({
     }
   }, [playerTeam, enemyTeam, state.phase, dispatch, reloadTeam]);
 
-// Handles victory condition
-const handleWin = async () => {
-  try {
-    const progressString = sessionStorage.getItem("rankedProgress");
-    const statsString = sessionStorage.getItem("rankedStats");
+  // Handles victory condition
+  const handleWin = async () => {
+    try {
+      const progressString = sessionStorage.getItem("rankedProgress");
+      const statsString = sessionStorage.getItem("rankedStats");
 
-    const progress = progressString
-      ? JSON.parse(progressString)
-      : { arenas: [], completed: 0 };
+      const progress = progressString
+        ? JSON.parse(progressString)
+        : { arenas: [], completed: 0 };
 
-    // Load previous stats or start fresh
-    const stats = statsString
-      ? JSON.parse(statsString)
-      : { totalTurns: 0, totalHpLost: 0 };
+      // Load previous stats or start fresh
+      const stats = statsString
+        ? JSON.parse(statsString)
+        : { totalTurns: 0, totalHpLost: 0 };
 
-    // Calculate stats for this battle
-    const turnsThisBattle = stateRef.current.log.filter((msg) =>
-      msg.includes("used")
-    ).length; // crude but effective way to count turns
-    const totalPlayerMaxHp = stateRef.current.playerTeam.reduce(
-      (sum, p) => sum + p.maxHp,
-      0
-    );
-    const totalPlayerHpRemaining = stateRef.current.playerTeam.reduce(
-      (sum, p) => sum + p.hp,
-      0
-    );
-    const hpLostThisBattle = totalPlayerMaxHp - totalPlayerHpRemaining;
-
-    const updatedStats = {
-      totalTurns: stats.totalTurns + turnsThisBattle,
-      totalHpLost: stats.totalHpLost + hpLostThisBattle,
-    };
-
-    sessionStorage.setItem("rankedStats", JSON.stringify(updatedStats));
-
-    // Update progress
-    const newArenasCompleted = progress.completed + 1;
-    progress.completed = newArenasCompleted;
-    sessionStorage.setItem("rankedProgress", JSON.stringify(progress));
-    await updateArenasCompletedAction(newArenasCompleted);
-
-    // If player cleared all 5 arenas => calculate and submit final score
-    if (newArenasCompleted >= 5) { //now 1 for testing
-      const { calculateScore } = await import("../../game-logic/lib/calculateScore");
-      const finalScore = calculateScore(
-        updatedStats.totalTurns,
-        updatedStats.totalHpLost
+      // Calculate stats for this battle
+      const turnsThisBattle = stateRef.current.log.filter((msg) =>
+        msg.includes("used")
+      ).length; // crude but effective way to count turns
+      const totalPlayerMaxHp = stateRef.current.playerTeam.reduce(
+        (sum, p) => sum + p.maxHp,
+        0
       );
+      const totalPlayerHpRemaining = stateRef.current.playerTeam.reduce(
+        (sum, p) => sum + p.hp,
+        0
+      );
+      const hpLostThisBattle = totalPlayerMaxHp - totalPlayerHpRemaining;
 
-      const { submitScoreAction } = await import("@/features/game-logic/actions");
-      await submitScoreAction(finalScore);
+      const updatedStats = {
+        totalTurns: stats.totalTurns + turnsThisBattle,
+        totalHpLost: stats.totalHpLost + hpLostThisBattle,
+      };
 
-      // Clean up
-      sessionStorage.removeItem("rankedProgress");
-      sessionStorage.removeItem("rankedStats");
+      sessionStorage.setItem("rankedStats", JSON.stringify(updatedStats));
+
+      // Update progress
+      const newArenasCompleted = progress.completed + 1;
+      progress.completed = newArenasCompleted;
+      sessionStorage.setItem("rankedProgress", JSON.stringify(progress));
+      await updateArenasCompletedAction(newArenasCompleted);
+
+      // If player cleared all 5 arenas => calculate and submit final score
+      if (newArenasCompleted >= 5) {
+        //now 1 for testing
+        const { calculateScore } = await import(
+          "../../game-logic/lib/calculateScore"
+        );
+        const finalScore = calculateScore(
+          updatedStats.totalTurns,
+          updatedStats.totalHpLost
+        );
+
+        const { submitScoreAction } = await import(
+          "@/features/game-logic/actions"
+        );
+        await submitScoreAction(finalScore);
+
+        // Clean up
+        sessionStorage.removeItem("rankedProgress");
+        sessionStorage.removeItem("rankedStats");
+      }
+
+      router.push("/gamehub");
+    } catch (error) {
+      console.error("Failed to save progress or submit score:", error);
+      router.push("/gamehub");
     }
-
-    router.push("/gamehub");
-  } catch (error) {
-    console.error("Failed to save progress or submit score:", error);
-    router.push("/gamehub");
-  }
-};
+  };
 
   // Handles run condition
   const handleRun = async () => {
@@ -400,10 +398,15 @@ const handleWin = async () => {
             dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_MOVE" })
           }
           onPokemon={() =>
-            dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_POKEMON" })
+            dispatch({
+              type: "SET_PLAYER_ACTION",
+              payload: "SELECTING_POKEMON",
+            })
           }
           onRun={handleRun}
-          onBack={() => dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })}
+          onBack={() =>
+            dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })
+          }
           isBusy={isBusy}
           showBack={playerAction !== "IDLE"}
         />
@@ -411,4 +414,3 @@ const handleWin = async () => {
     </div>
   );
 }
-
