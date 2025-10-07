@@ -1,31 +1,23 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { DetailsPageProps } from "@/features/team-selection/types";
+import { PokemonSprites } from "@/features/team-selection/types";
+import { Pokemon } from "@/features/team-selection/types";
+import { useParams } from "next/navigation";
 
-interface DetailsPageProps {
-  params: Promise<{ id: string }>;
-}
-
-interface Pokemon {
-  id: number;
-  name: string;
-  sprites: { front_default: string; other: Record<string, unknown> };
-  types: { slot: number; type: { name: string } }[];
-  abilities: { ability: { name: string }; is_hidden: boolean }[];
-  stats: { base_stat: number; stat: { name: string } }[];
-  moves: { move: { name: string } }[];
-  height: number;
-  weight: number;
-}
-
-export default function DetailsPage({ params }: DetailsPageProps) {
-  const { id } = use(params);
+export default function DetailsPage() {
+  const params = useParams();
+  const id = params.id as string;
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
 
   useEffect(() => {
-    fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
-      .then((res) => res.json())
-      .then((data) => setPokemon(data));
+    if (id) {
+      fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+        .then((res) => res.json())
+        .then((data) => setPokemon(data));
+    }
   }, [id]);
 
   if (!pokemon)
@@ -34,9 +26,11 @@ export default function DetailsPage({ params }: DetailsPageProps) {
   return (
     <div className="p-6 max-w-4xl mx-auto text-amber-200/80">
       <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-        <img
+        <Image
           src={pokemon.sprites.front_default}
           alt={pokemon.name}
+          width={160}
+          height={160}
           className="w-40 h-40 drop-shadow-lg"
         />
         <h1 className="text-4xl font-bold capitalize text-yellow-400 drop-shadow-lg">
