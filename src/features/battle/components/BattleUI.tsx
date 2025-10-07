@@ -55,15 +55,8 @@ export default function BattleScene({
     stateRef.current = state;
   }, [state]);
 
-  const {
-    phase,
-    playerAction,
-    message,
-    log,
-    isFainting,
-    playerIndex,
-    enemyIndex,
-  } = state;
+  const { phase, playerAction, log, isFainting, playerIndex, enemyIndex } =
+    state;
   // Prevents user inputs during animations or after game over
   const isBusy = phase === "animating" || phase === "game_over";
 
@@ -79,70 +72,81 @@ export default function BattleScene({
     }
   }, [playerTeam, enemyTeam, state.phase, dispatch, reloadTeam]);
 
-// Handles victory condition
-const handleWin = async () => {
-  try {
-    const progressString = sessionStorage.getItem("rankedProgress");
-    const statsString = sessionStorage.getItem("rankedStats");
+  // Handles victory condition
+  const handleWin = async () => {
+    try {
+      const progressString = sessionStorage.getItem("rankedProgress");
+      const statsString = sessionStorage.getItem("rankedStats");
 
-    const progress = progressString
-      ? JSON.parse(progressString)
-      : { arenas: [], completed: 0 };
+      const progress = progressString
+        ? JSON.parse(progressString)
+        : { arenas: [], completed: 0 };
 
-    // Load previous stats or start fresh
-    const stats = statsString
-      ? JSON.parse(statsString)
-      : { totalTurns: 0, totalHpLost: 0 };
+      // Load previous stats or start fresh
+      const stats = statsString
+        ? JSON.parse(statsString)
+        : { totalTurns: 0, totalHpLost: 0 };
 
-    // Calculate stats for this battle
-    const turnsThisBattle = stateRef.current.log.filter((msg) =>
-      msg.includes("used")
-    ).length; // crude but effective way to count turns
-    const totalPlayerMaxHp = stateRef.current.playerTeam.reduce(
-      (sum, p) => sum + p.maxHp,
-      0
-    );
-    const totalPlayerHpRemaining = stateRef.current.playerTeam.reduce(
-      (sum, p) => sum + p.hp,
-      0
-    );
-    const hpLostThisBattle = totalPlayerMaxHp - totalPlayerHpRemaining;
-
-    const updatedStats = {
-      totalTurns: stats.totalTurns + turnsThisBattle,
-      totalHpLost: stats.totalHpLost + hpLostThisBattle,
-    };
-
-    sessionStorage.setItem("rankedStats", JSON.stringify(updatedStats));
-
-    // Update progress
-    const newArenasCompleted = progress.completed + 1;
-    progress.completed = newArenasCompleted;
-    sessionStorage.setItem("rankedProgress", JSON.stringify(progress));
-    await updateArenasCompletedAction(newArenasCompleted);
-
-    // If player cleared all 5 arenas => calculate and submit final score
-    if (newArenasCompleted >= 5) { 
-      const { calculateScore } = await import("../../game-logic/lib/calculateScore");
-      const finalScore = calculateScore(
-        updatedStats.totalTurns,
-        updatedStats.totalHpLost
+      // Calculate stats for this battle
+      const turnsThisBattle = stateRef.current.log.filter((msg) =>
+        msg.includes("used")
+      ).length; // crude but effective way to count turns
+      const totalPlayerMaxHp = stateRef.current.playerTeam.reduce(
+        (sum, p) => sum + p.maxHp,
+        0
       );
+      const totalPlayerHpRemaining = stateRef.current.playerTeam.reduce(
+        (sum, p) => sum + p.hp,
+        0
+      );
+      const hpLostThisBattle = totalPlayerMaxHp - totalPlayerHpRemaining;
 
-      const { submitScoreAction } = await import("@/features/game-logic/actions");
-      await submitScoreAction(finalScore);
+      const updatedStats = {
+        totalTurns: stats.totalTurns + turnsThisBattle,
+        totalHpLost: stats.totalHpLost + hpLostThisBattle,
+      };
 
-      // Clean up
-      sessionStorage.removeItem("rankedProgress");
-      sessionStorage.removeItem("rankedStats");
+      sessionStorage.setItem("rankedStats", JSON.stringify(updatedStats));
+
+      // Update progress
+      const newArenasCompleted = progress.completed + 1;
+      progress.completed = newArenasCompleted;
+      sessionStorage.setItem("rankedProgress", JSON.stringify(progress));
+      await updateArenasCompletedAction(newArenasCompleted);
+
+      // Force reload of game hub to update progress bar
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          window.location.href = "/gamehub";
+        }, 500); // slight delay for DB update
+      }
+
+      // If player cleared all 5 arenas => calculate and submit final score
+      if (newArenasCompleted >= 5) {
+        const { calculateScore } = await import(
+          "../../game-logic/lib/calculateScore"
+        );
+        const finalScore = calculateScore(
+          updatedStats.totalTurns,
+          updatedStats.totalHpLost
+        );
+
+        const { submitScoreAction } = await import(
+          "@/features/game-logic/actions"
+        );
+        await submitScoreAction(finalScore);
+
+        // Clean up
+        sessionStorage.removeItem("rankedProgress");
+        sessionStorage.removeItem("rankedStats");
+      }
+
+      dispatch({ type: "SET_PHASE", payload: "game_over" });
+    } catch (error) {
+      console.error("Failed to save progress or submit score:", error);
+      dispatch({ type: "SET_PHASE", payload: "game_over" });
     }
-
-    dispatch({ type: "SET_PHASE", payload: "game_over" });
-  } catch (error) {
-    console.error("Failed to save progress or submit score:", error);
-    dispatch({ type: "SET_PHASE", payload: "game_over" });
-  }
-};
+  };
 
   // Handles run condition
   const handleRun = async () => {
@@ -351,10 +355,15 @@ const handleWin = async () => {
     });
   };
 
-// Shows loading screen or error if teams are missing
-  if (state.phase === "loading" || !state.playerTeam.length || !state.enemyTeam.length) {
+  // Shows loading screen or error if teams are missing
+  if (
+    state.phase === "loading" ||
+    !state.playerTeam.length ||
+    !state.enemyTeam.length
+  ) {
     // Case 1: Player team missing
-    if (showTeamError && !playerTeam.length) {   // ✅ changed condition
+    if (showTeamError && !playerTeam.length) {
+      // ✅ changed condition
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-black text-white text-center">
           <p className="text-red-400 text-lg font-bold mb-4">
@@ -393,9 +402,7 @@ const handleWin = async () => {
     );
   }
 
-
   const showReturnButton = phase === "game_over";
-    
 
   // Renders the full battle scene layout
   return (
@@ -448,16 +455,21 @@ const handleWin = async () => {
             dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_MOVE" })
           }
           onPokemon={() =>
-            dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_POKEMON" })
+            dispatch({
+              type: "SET_PLAYER_ACTION",
+              payload: "SELECTING_POKEMON",
+            })
           }
           onRun={handleRun}
-          onBack={() => dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })}
+          onBack={() =>
+            dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })
+          }
           isBusy={isBusy}
           showBack={playerAction !== "IDLE"}
         />
       </div>
 
-        {showReturnButton && (
+      {showReturnButton && (
         <div className="absolute inset-0 flex items-center justify-center z-50">
           <button
             onClick={() => router.push("/gamehub")}
@@ -467,8 +479,6 @@ const handleWin = async () => {
           </button>
         </div>
       )}
-
     </div>
   );
 }
-

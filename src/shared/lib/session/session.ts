@@ -71,7 +71,7 @@ export async function deleteSession() {
     .delete({
       where: { token },
     })
-    .catch((error: any) => {
+    .catch((error: unknown) => {
       console.error("Failed to delete session:", error);
     });
   // Clear cookie
