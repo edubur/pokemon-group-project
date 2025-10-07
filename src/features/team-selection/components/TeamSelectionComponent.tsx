@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { Pokemon } from "../types";
 import { useTeam } from "../hooks/useTeam";
 import { saveTeamAction } from "../actions";
@@ -124,7 +130,7 @@ export default function TeamSelectionClient({
   }, [search, displayedPokemons]);
 
   // Infinite scroll logic
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
     if (loading) return;
 
     if (typeFilter) {
@@ -145,7 +151,7 @@ export default function TeamSelectionClient({
       setOffset((prev) => prev + PAGE_SIZE);
       setLoading(false); // done loading
     }
-  };
+  }, [loading, typeFilter, typeOffset, offset, allPokemons]);
 
   useEffect(() => {
     // Disable infinite scroll if a type is selected

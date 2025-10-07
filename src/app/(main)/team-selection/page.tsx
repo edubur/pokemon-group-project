@@ -12,12 +12,19 @@ async function fetchPokemonDetails(ids: number[]): Promise<Pokemon[]> {
 
   const results = await Promise.all(requests);
 
-  // Maps results to Pokemon type
+  // Return full objects matching the expected Pokemon type
   return results.map((p) => ({
     id: p.id,
     name: p.name,
     url: `https://pokeapi.co/api/v2/pokemon/${p.id}/`,
     image: p.sprites.front_default || "Placeholder.png",
+    sprites: p.sprites,
+    types: p.types,
+    abilities: p.abilities,
+    stats: p.stats,
+    moves: p.moves,
+    height: p.height,
+    weight: p.weight,
   }));
 }
 

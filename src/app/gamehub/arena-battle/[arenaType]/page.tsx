@@ -1,9 +1,7 @@
 import BattleScene from "@/features/battle/components/BattleUI";
 
 interface ArenaPageProps {
-  params: {
-    arenaType: string;
-  };
+  params: Promise<{ arenaType: string }>;
 }
 
 export default async function ArenaPage({ params }: ArenaPageProps) {
