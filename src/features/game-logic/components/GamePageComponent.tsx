@@ -1,21 +1,16 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@prisma/client";
 import Link from "next/link";
 import AvatarUploadModal from "@/features/profile-picture/components/AvatarUpload";
 import { Pokemon } from "@/features/team-selection/types";
+import { resetArenasCompletedAction } from "@/features/game-logic/actions";
+import { LeaderboardEntry } from "../types";
 
-interface LeaderboardEntry {
-  id: number;
-  score: number;
-  user: {
-    id: number;
-    username: string;
-    avatarUrl?: string | null;
-  };
-}
-
+// Displays the main game hub showing profile info, team,
+// ranked/unranked modes, and leaderboard
 export default function GamePageClient({
   user,
   personalBest,
@@ -29,15 +24,63 @@ export default function GamePageClient({
   rank: number | string;
   leaderboard: LeaderboardEntry[];
 }) {
+  // Ref for avatar upload modal
   const dialogRef = useRef<HTMLDialogElement | null>(null);
-  const handleAvatarClick = () => dialogRef.current?.showModal();
+  const router = useRouter();
 
+  // Local state for tracking arenas completed in ranked mode
+  const [arenasCompleted, setArenasCompleted] = useState(
+    user?.arenasCompleted || 0
+  );
+
+  // Syncs arenasCompleted whenever user data changes
+  useEffect(() => {
+    setArenasCompleted(user?.arenasCompleted || 0);
+  }, [user?.arenasCompleted]);
+
+  // Starts new Ranked session
+  const handlePlayRanked = async () => {
+    await resetArenasCompletedAction();
+
+    const arenas = ["fire", "water", "grass", "rock", "electric"];
+    const shuffledArenas = arenas.sort(() => 0.5 - Math.random());
+
+    const progress = {
+      arenas: shuffledArenas,
+      completed: 0,
+    };
+
+    sessionStorage.setItem("rankedProgress", JSON.stringify(progress));
+    setArenasCompleted(0);
+
+    router.push(`/gamehub/arena-battle/${shuffledArenas[0]}`);
+  };
+
+  // Handles continue Ranked game
+  const handleContinueRanked = () => {
+    const progressString = sessionStorage.getItem("rankedProgress");
+    if (progressString) {
+      const progress = JSON.parse(progressString);
+      if (progress.completed < progress.arenas.length) {
+        const nextArena = progress.arenas[progress.completed];
+        router.push(`/gamehub/arena-battle/${nextArena}`);
+        return;
+      }
+    }
+    handlePlayRanked();
+  };
+
+  // Default avatar if user has none
   const avatarSrc = user?.avatarUrl || "/default_profile_picture.png";
+
+  // Progress percentage for ranked arenas
+  const progressPercentage = (arenasCompleted / 5) * 100;
 
   return (
     <>
+      {/* Main layout */}
       <main className="relative min-h-screen overflow-hidden p-4 sm:p-6 lg:p-8 text-amber-200/80">
-        {/* Background */}
+        {/* Background with blur and gradient overlays */}
         <div
           className="absolute inset-0 z-10 bg-cover bg-center"
           style={{
@@ -52,17 +95,18 @@ export default function GamePageClient({
           <div className="absolute inset-0 bg-gradient-to-tl via-orange-500/10 opacity-50"></div>
         </div>
 
-        {/* Main Content */}
         <div className="relative z-40 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left sidebar Profile info + leaderboard */}
             <div className="lg:col-span-1 flex flex-col gap-6">
-              {/* Profile */}
+              {/* Player profile card */}
               <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm">
                 <div className="card-body">
                   <div className="flex items-center gap-4">
+                    {/* Avatar clickable to open upload modal */}
                     <div
                       className="avatar online cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={handleAvatarClick}
+                      onClick={() => dialogRef.current?.showModal()}
                     >
                       <div className="w-16 rounded-full border border-yellow-400/40">
                         <img src={avatarSrc} alt="Player Avatar" />
@@ -80,12 +124,13 @@ export default function GamePageClient({
 
                   <div className="divider my-2 border-yellow-500/20"></div>
 
-                  {/* Rank + Points */}
+                  {/* Stats Personal Best + Rank */}
                   <div className="stats stats-vertical shadow-inner bg-gray-800/70 border border-yellow-500/10">
                     <div className="stat text-amber-200/80">
                       <div className="stat-title text-yellow-400/80">
                         Personal Best
                       </div>
+
                       <div className="stat-value text-yellow-400">
                         {personalBest.toLocaleString()}
                       </div>
@@ -94,13 +139,14 @@ export default function GamePageClient({
                       <div className="stat-title text-yellow-400/80">
                         Current Rank
                       </div>
+
                       <div className="stat-value text-yellow-400">{rank}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Leaderboard */}
+              {/* Leaderboard card */}
               <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm">
                 <div className="card-body">
                   <h2 className="card-title mb-4 text-yellow-400">
@@ -117,6 +163,7 @@ export default function GamePageClient({
                           <div className="font-bold text-lg text-yellow-400 w-6">
                             {idx + 1}
                           </div>
+
                           <div className="avatar">
                             <div className="w-10 rounded-full border border-yellow-500/20 overflow-hidden">
                               <img
@@ -128,6 +175,7 @@ export default function GamePageClient({
                               />
                             </div>
                           </div>
+
                           <div className="flex-grow font-semibold text-amber-200/80">
                             {entry.user.username}
                           </div>
@@ -146,33 +194,58 @@ export default function GamePageClient({
               </div>
             </div>
 
-            {/* Ranked */}
+            {/* Right section Ranked/Unranked modes + Team */}
             <div className="lg:col-span-2 flex flex-col gap-6">
+              {/* Ranked Card */}
               <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm text-center">
                 <div className="card-body items-center">
                   <h2 className="card-title text-3xl font-bold text-yellow-400">
                     Ranked
                   </h2>
                   <p className="my-4 text-amber-200/80">
-                    Face 10 random arenas and fight for the top leaderboard
-                    spot!
+                    Face 5 random arenas and fight for the top leaderboard spot!
                   </p>
-                  <div className="card-actions">
-                    <button className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400">
-                      PLAY
+
+                  {/* Progress bar if arenas completed */}
+                  {arenasCompleted > 0 && arenasCompleted < 5 && (
+                    <div className="w-full max-w-sm my-2">
+                      <p className="text-amber-200/90 mb-1">
+                        Arenas Cleared: {arenasCompleted} / 5
+                      </p>
+                      <div className="w-full bg-gray-700 rounded-full h-2.5">
+                        <div
+                          className="bg-yellow-400 h-2.5 rounded-full transition-all duration-500"
+                          style={{ width: `${progressPercentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="card-actions mt-4">
+                    <button
+                      onClick={
+                        arenasCompleted > 0 && arenasCompleted < 5
+                          ? handleContinueRanked
+                          : handlePlayRanked
+                      }
+                      className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400"
+                    >
+                      {arenasCompleted > 0 && arenasCompleted < 5
+                        ? "CONTINUE"
+                        : "PLAY"}
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Unranked */}
+              {/* Unranked Card */}
               <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm text-center">
                 <div className="card-body items-center">
                   <h2 className="card-title text-3xl font-bold text-yellow-400">
                     Unranked
                   </h2>
                   <p className="my-4 text-amber-200/80">
-                    Face 10 random arenas to test your Team before jumping into
+                    Face 5 random arenas to test your Team before jumping into
                     ranked!
                   </p>
                   <div className="card-actions">
@@ -183,7 +256,7 @@ export default function GamePageClient({
                 </div>
               </div>
 
-              {/* Team */}
+              {/* Team Card */}
               <div className="card bg-gray-900/60 border border-yellow-500/20 shadow-xl backdrop-blur-sm">
                 <div className="card-body items-center">
                   <h2 className="card-title mb-4 text-2xl text-yellow-400">
@@ -227,7 +300,6 @@ export default function GamePageClient({
           </div>
         </div>
       </main>
-
       <AvatarUploadModal dialogRef={dialogRef} />
     </>
   );

@@ -2,7 +2,7 @@ import { prisma } from "@/shared/lib/prisma/prisma";
 import { Pokemon } from "@/features/team-selection/types";
 import { getSession } from "@/shared/lib/session/session";
 
-// Fetch Pokémon details from PokeAPI
+// Fetches Pokemon details from PokeAPI
 export async function fetchPokemonDetails(ids: number[]): Promise<Pokemon[]> {
   if (ids.length === 0) return [];
 
@@ -20,7 +20,7 @@ export async function fetchPokemonDetails(ids: number[]): Promise<Pokemon[]> {
   }));
 }
 
-// Fetch current user by session
+// Fetches current user by session
 export async function getCurrentUser() {
   const session = await getSession();
   if (!session) return null;
@@ -28,7 +28,7 @@ export async function getCurrentUser() {
   return prisma.user.findUnique({ where: { id: session.userId } });
 }
 
-// Fetch top leaderboard entries
+// Fetchs top leaderboard entries
 export async function getLeaderboardTop(limit = 5) {
   return prisma.leaderboardEntry.findMany({
     orderBy: { score: "desc" },
@@ -39,7 +39,7 @@ export async function getLeaderboardTop(limit = 5) {
   });
 }
 
-// Fetch personal best and rank
+// Fetches personal best and rank
 export async function getPersonalBestAndRank(userId: number) {
   let personalBest = 0;
   let rank: number | string = "Unranked";
@@ -61,7 +61,7 @@ export async function getPersonalBestAndRank(userId: number) {
   return { personalBest, rank };
 }
 
-// Fetch the user's team
+// Fetches the users team
 export async function getUserTeam(
   user: { roster?: number[] } | null
 ): Promise<Pokemon[]> {

@@ -10,7 +10,6 @@ import { redirect } from "next/navigation";
 export default async function GamePage() {
   const user = await getCurrentUser();
 
-  // If user is not logged in redirect to login page
   if (!user) {
     redirect("/login");
   }

@@ -55,18 +55,18 @@ export async function loginAction(
       return { message: "Invalid email or password." };
     }
 
-    // Create session after successful login
+    // Creates session after successful login
     await createSession(user.id);
   } catch (error) {
     console.error(error);
     return { message: "An unexpected error occurred." };
   }
 
-  // Redirect user to home page
+  // Redirects user to home page
   redirect("/gamehub");
 }
 
-// Schema for validating registration form fields
+// Validates registration form fields
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters."),
   email: z.email("Invalid email format."),
@@ -78,12 +78,12 @@ export async function registerAction(
   prevState: RegisterFormState,
   formData: FormData
 ): Promise<RegisterFormState> {
-  // Parse and validate form fields
+  // Parses and validates form fields
   const validatedFields = registerSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
 
-  // Return validation errors if present
+  // Returns validation errors if present
   if (!validatedFields.success) {
     return {
       message: "Please correct the errors below.",
@@ -94,7 +94,7 @@ export async function registerAction(
   const { email, password, ...rest } = validatedFields.data;
 
   try {
-    // Prevent duplicate accounts
+    // Prevents duplicate accounts
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return {
@@ -103,11 +103,11 @@ export async function registerAction(
       };
     }
 
-    // Generate salt and hash password
+    // Generates salt and hash password
     const salt = generateSalt();
     const hashedPassword = await hashPassword(password, salt);
 
-    // Create new user in database
+    // Creates new user in database
     await prisma.user.create({
       data: {
         email,
@@ -121,19 +121,19 @@ export async function registerAction(
     return { message: "An unexpected server error occurred." };
   }
 
-  // Redirect to login page after registration
+  // Redirects to login page after registration
   redirect("/login");
 }
 
 // Logs out the current user
 export async function logout() {
   try {
-    // Delete the user session
+    // Deletes user session
     await deleteSession();
   } catch (error) {
-    console.error("Logout failed:", error); // Log error if session deletion fails
+    console.error("Logout failed:", error); // Logs error if session deletion fails
   }
 
-  // Redirect user to homepage
+  // Redirects user to homepage
   redirect("/");
 }

@@ -34,7 +34,7 @@ export default function TeamSelectionClient({
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
-      const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=1302");
+      const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=386");
       const data = await res.json();
       const results: Pokemon[] = data.results.map((p: any, index: number) => ({
         id: index + 1,
@@ -157,12 +157,15 @@ export default function TeamSelectionClient({
           placeholder="Search Pokémon by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="input input-bordered w-full md:w-1/3"
+          className="input input-bordered w-full md:w-1/3 bg-gray-800/90 text-amber-200/80
+                     border-yellow-400/40 placeholder-amber-400/50 focus:border-yellow-400
+                     focus:ring-yellow-400/40"
         />
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="select select-bordered w-full md:w-1/4"
+          className="select select-bordered w-full md:w-1/4 bg-gray-800/90 text-amber-200/80
+                     border-yellow-400/40 focus:border-yellow-400 focus:ring-yellow-400/40"
         >
           <option value="">All Types</option>
           {types.map((t) => (
@@ -173,10 +176,12 @@ export default function TeamSelectionClient({
         </select>
       </div>
 
-      {loading && <p className="text-center">Loading Pokémon...</p>}
+      {loading && (
+        <p className="text-center text-amber-200">Loading Pokémon...</p>
+      )}
 
       {!loading && searchedPokemons.length === 0 && (
-        <p className="text-center">No Pokémon found.</p>
+        <p className="text-center text-amber-200">No Pokémon found.</p>
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -187,7 +192,7 @@ export default function TeamSelectionClient({
 
       <div ref={loader} className="h-16 flex justify-center items-center mt-4">
         {!typeFilter && !loading && offset < allPokemons.length && (
-          <span>Loading more...</span>
+          <span className="text-amber-200">Loading more...</span>
         )}
       </div>
 
