@@ -31,7 +31,7 @@ export default function TeamSelectionClient({
     useTeam(initialTeam);
   const loader = useRef<HTMLDivElement | null>(null);
 
-  // Fetch list of all Pokémon
+  // Fetch lhe first 386 Pokemon
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -53,8 +53,10 @@ export default function TeamSelectionClient({
     fetchAll();
   }, []);
 
-  // Fetch list of types for filter
+  // Fetch types after 386 Pokemon loaded
   useEffect(() => {
+    if (allPokemons.length === 0) return;
+
     fetch("https://pokeapi.co/api/v2/type")
       .then((res) => res.json())
       .then((data) => {
@@ -63,10 +65,12 @@ export default function TeamSelectionClient({
           .filter((t: string) => !["unknown", "shadow"].includes(t));
         setTypes(filteredTypes);
       });
-  }, []);
+  }, [allPokemons]);
 
   //  Handles what happens when user changes type filter
   useEffect(() => {
+    if (allPokemons.length === 0) return;
+
     if (!typeFilter) {
       setDisplayedPokemons(allPokemons.slice(0, PAGE_SIZE));
       setOffset(PAGE_SIZE);
@@ -96,7 +100,9 @@ export default function TeamSelectionClient({
           url: p.pokemon.url,
           image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
         };
-      });
+      })
+      // Only include Pokémon that exist in the first 386
+        .filter((p: Pokemon) => p.id <= 386);
 
       typeCache.current[typeFilter] = results; // Save to cache
       setDisplayedPokemons(results.slice(0, PAGE_SIZE));
@@ -153,7 +159,7 @@ export default function TeamSelectionClient({
     return () => {
       if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [typeFilter, offset, typeOffset]); // added typeOffset so observer updates correctly
+  }, [typeFilter, offset, typeOffset]);
 
   const handleSaveTeam = async () => {
     try {
