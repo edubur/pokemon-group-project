@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useRef, useEffect, useState } from "react";
@@ -9,6 +8,8 @@ import AvatarUploadModal from "@/features/profile-picture/components/AvatarUploa
 import { Pokemon } from "@/features/team-selection/types";
 import { resetArenasCompletedAction } from "@/features/game-logic/actions";
 import { LeaderboardEntry } from "../types";
+import Navbar from "@/shared/components/navbar/components/NavBar";
+import Background from "@/shared/components/ui/Background";
 
 // Displays the main game hub showing profile info, team,
 // ranked/unranked modes, and leaderboard
@@ -18,12 +19,14 @@ export default function GamePageClient({
   team,
   rank,
   leaderboard,
+  isLoggedIn,
 }: {
   user: User | null;
   personalBest: number;
   team: Pokemon[];
   rank: number | string;
   leaderboard: LeaderboardEntry[];
+  isLoggedIn: boolean;
 }) {
   // Ref for avatar upload modal
   const dialogRef = useRef<HTMLDialogElement | null>(null);
@@ -81,23 +84,10 @@ export default function GamePageClient({
 
   return (
     <>
+      <Background />
+      <Navbar isLoggedIn={isLoggedIn} />
       {/* Main layout */}
-      <main className="relative min-h-screen overflow-hidden p-4 sm:p-6 lg:p-8 text-amber-200/80">
-        {/* Background with blur and gradient overlays */}
-        <div
-          className="absolute inset-0 z-10 bg-cover bg-center"
-          style={{
-            backgroundImage: 'url("/background.png")',
-            filter: "blur(35px)",
-            transform: "scale(1.1)",
-          }}
-        ></div>
-        <div className="absolute inset-0 z-20 bg-black opacity-60"></div>
-        <div className="absolute inset-0 z-30">
-          <div className="absolute inset-0 bg-gradient-to-br via-yellow-500/10 opacity-50"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl via-orange-500/10 opacity-50"></div>
-        </div>
-
+      <main className="relative z-40 pt-24 px-4 sm:px-6 lg:px-8 min-h-screen overflow-hidden text-amber-200/80">
         <div className="relative z-40 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left sidebar Profile info + leaderboard */}

@@ -2,16 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getLeaderboard } from "../actions";
-
-interface LeaderboardEntry {
-  id: number;
-  username: string;
-  score: number;
-  createdAt: string;
-  avatarUrl?: string | null;
-}
-
-type SortKey = "place" | "username" | "score" | "date";
+import { LeaderboardEntry } from "../types";
+import { SortKey } from "../types";
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -22,7 +14,15 @@ export default function Leaderboard() {
   useEffect(() => {
     async function loadData() {
       const data = await getLeaderboard();
-      setEntries(data);
+      const formatted = data.map((entry) => ({
+        ...entry,
+        createdAt:
+          entry.createdAt instanceof Date
+            ? entry.createdAt.toISOString()
+            : entry.createdAt,
+      }));
+
+      setEntries(formatted);
       setLoading(false);
     }
     loadData();
@@ -54,7 +54,7 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-black/90 text-white px-6 py-16">
+    <div className="relative min-h-screen flex flex-col items-center justify-center text-white px-6 py-16">
       <h1 className="mb-10 text-5xl md:text-6xl font-bold text-yellow-400 drop-shadow-[0_0_15px_rgba(255,200,0,0.5)]">
         🏆 Leaderboard
       </h1>
@@ -70,68 +70,69 @@ export default function Leaderboard() {
           </p>
         ) : (
           <table className="w-full table-auto text-left border-separate border-spacing-y-2">
-  <thead>
-    <tr className="border-b border-yellow-400/20">
-      <th
-        className="px-4 py-2 text-right cursor-pointer"
-        onClick={() => handleSort("place")}
-      >
-        #
-      </th>
-      <th
-        className="px-4 py-2 cursor-pointer"
-        onClick={() => handleSort("username")}
-      >
-        <div className="flex items-center gap-3">Player</div>
-      </th>
-      <th
-        className="px-4 py-2 cursor-pointer"
-        onClick={() => handleSort("score")}
-      >
-        Points
-      </th>
-      <th
-        className="px-4 py-2 cursor-pointer"
-        onClick={() => handleSort("date")}
-      >
-        Date
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    {sortedEntries.map((entry, index) => (
-      <tr
-        key={entry.id}
-        className={`transition-transform duration-200 ${
-          index === 0
-            ? "bg-gradient-to-r from-yellow-500/30 to-orange-500/20 scale-[1.02] border border-yellow-400/40 shadow-lg"
-            : "hover:bg-yellow-500/10"
-        }`}
-      >
-        <td className="px-4 py-2 font-bold text-yellow-400 text-right">
-          {index + 1}
-        </td>
-        <td className="px-4 py-2 flex items-center gap-3">
-          {entry.avatarUrl && (
-            <img
-              src={entry.avatarUrl}
-              alt={entry.username}
-              className="w-8 h-8 rounded-full object-cover border border-yellow-400/30"
-            />
-          )}
-          <span className="font-semibold text-amber-100">
-            {entry.username || "Anonymous"}
-          </span>
-        </td>
-        <td className="px-4 py-2 font-mono text-yellow-300">{entry.score}</td>
-        <td className="px-4 py-2 text-amber-200/70">
-          {new Date(entry.createdAt).toLocaleDateString()}
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-
+            <thead>
+              <tr className="border-b border-yellow-400/20">
+                <th
+                  className="px-4 py-2 text-right cursor-pointer"
+                  onClick={() => handleSort("place")}
+                >
+                  #
+                </th>
+                <th
+                  className="px-4 py-2 cursor-pointer"
+                  onClick={() => handleSort("username")}
+                >
+                  <div className="flex items-center gap-3">Player</div>
+                </th>
+                <th
+                  className="px-4 py-2 cursor-pointer"
+                  onClick={() => handleSort("score")}
+                >
+                  Points
+                </th>
+                <th
+                  className="px-4 py-2 cursor-pointer"
+                  onClick={() => handleSort("date")}
+                >
+                  Date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedEntries.map((entry, index) => (
+                <tr
+                  key={entry.id}
+                  className={`transition-transform duration-200 ${
+                    index === 0
+                      ? "bg-gradient-to-r from-yellow-500/30 to-orange-500/20 scale-[1.02] border border-yellow-400/40 shadow-lg"
+                      : "hover:bg-yellow-500/10"
+                  }`}
+                >
+                  <td className="px-4 py-2 font-bold text-yellow-400 text-right">
+                    {index + 1}
+                  </td>
+                  <td className="px-4 py-2 flex items-center gap-3">
+                    {entry.avatarUrl && (
+                      <img
+                        src={entry.avatarUrl}
+                        alt={entry.username}
+                        className="w-8 h-8 rounded-full object-cover border border-yellow-400/30"
+                      />
+                    )}
+                    <span className="font-semibold text-amber-100">
+                      {entry.username || "Anonymous"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 font-mono text-yellow-300">
+                    {entry.score}
+                  </td>
+                  <td className="px-4 py-2 text-amber-200/70">
+                    {new Date(entry.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
