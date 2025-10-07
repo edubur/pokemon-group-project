@@ -20,8 +20,8 @@ export default function HealthBar({
   // Position next to sprite — responsive & mirrored per side
   const positionClass =
     side === "player"
-      ? "absolute bottom-[-30%] right-[-150%]" // moved down and right
-      : "absolute top-[5%] left-[-190%]"; // enemy bar near top-left
+      ? "absolute bottom-[25%] right-[-300%]" // moved down and right
+      : "absolute top-[20%] left-[-350%]"; // enemy bar near top-left
 
   return (
     <div

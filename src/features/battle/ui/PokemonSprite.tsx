@@ -21,7 +21,7 @@ export default function PokemonSprite({
   const positionClass =
     side === "player"
       ? "absolute bottom-[min(35%)] left-[47%] -translate-x-1/2"
-      : "absolute top-[min(6%)] left-[min(80%)] right-[min(15%)] -translate-x-1/2";
+      : "absolute top-[min(6%)] left-[min(77%)] right-[min(20%)] -translate-x-1/2";
 
   const spriteUrl =
     side === "player" ? pokemon.backSprite : pokemon.animatedSprite;
