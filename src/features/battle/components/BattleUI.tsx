@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useBattleTeam } from "@/features/battle/hooks/useBattleTeam";
 import { useEnemyTeam } from "@/features/battle/hooks/useEnemyTeam";
@@ -32,6 +32,21 @@ export default function BattleScene({
   // Player and enemy team data
   const { team: playerTeam, reloadTeam } = useBattleTeam();
   const { enemyTeam } = useEnemyTeam(arenaType);
+
+  // new state for delayed team error
+  const [showTeamError, setShowTeamError] = useState(false);
+
+  // wait 3s before showing team error if team stays empty
+  useEffect(() => {
+    if (playerTeam.length === 0) {
+      const timer = setTimeout(() => {
+        if (playerTeam.length === 0) setShowTeamError(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowTeamError(false);
+    }
+  }, [playerTeam]);
 
   // Keeps the latest state reference for async updates
   const stateRef = useRef(state);
@@ -107,7 +122,7 @@ const handleWin = async () => {
     await updateArenasCompletedAction(newArenasCompleted);
 
     // If player cleared all 5 arenas => calculate and submit final score
-    if (newArenasCompleted >= 5) { //now 1 for testing
+    if (newArenasCompleted >= 5) { 
       const { calculateScore } = await import("../../game-logic/lib/calculateScore");
       const finalScore = calculateScore(
         updatedStats.totalTurns,
@@ -122,10 +137,10 @@ const handleWin = async () => {
       sessionStorage.removeItem("rankedStats");
     }
 
-    router.push("/gamehub");
+    dispatch({ type: "SET_PHASE", payload: "game_over" });
   } catch (error) {
     console.error("Failed to save progress or submit score:", error);
-    router.push("/gamehub");
+    dispatch({ type: "SET_PHASE", payload: "game_over" });
   }
 };
 
@@ -336,18 +351,51 @@ const handleWin = async () => {
     });
   };
 
-  // Shows loading screen until both teams are ready
-  if (
-    state.phase === "loading" ||
-    !state.playerTeam.length ||
-    !state.enemyTeam.length
-  ) {
+// Shows loading screen or error if teams are missing
+  if (state.phase === "loading" || !state.playerTeam.length || !state.enemyTeam.length) {
+    // Case 1: Player team missing
+    if (showTeamError && !playerTeam.length) {   // ✅ changed condition
+      return (
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-black text-white text-center">
+          <p className="text-red-400 text-lg font-bold mb-4">
+            Error: No Pokémon found in your team!
+          </p>
+          <p className="text-amber-200 mb-6">
+            Please build your team before starting a battle.
+          </p>
+          <button
+            onClick={() => router.push("/team-selection")}
+            className="px-6 py-3 bg-yellow-400 text-black font-bold rounded-xl shadow-lg hover:bg-yellow-300 transition-transform transform hover:scale-105"
+          >
+            Go to Team Builder
+          </button>
+        </div>
+      );
+    }
+
+    // Case 2: Enemy team missing
+    if (!enemyTeam.length) {
+      return (
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-black text-white text-center">
+          <p className="text-yellow-300 text-lg font-bold mb-4">
+            Loading enemy team...
+          </p>
+          <p className="text-sm text-gray-400">(Please wait a moment)</p>
+        </div>
+      );
+    }
+
+    // Case 3: Default loading state
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-black text-white">
         Loading Battle...
       </div>
     );
   }
+
+
+  const showReturnButton = phase === "game_over";
+    
 
   // Renders the full battle scene layout
   return (
@@ -408,6 +456,18 @@ const handleWin = async () => {
           showBack={playerAction !== "IDLE"}
         />
       </div>
+
+        {showReturnButton && (
+        <div className="absolute inset-0 flex items-center justify-center z-50">
+          <button
+            onClick={() => router.push("/gamehub")}
+            className="px-6 py-3 bg-yellow-400 border text-black font-bold rounded-xl shadow-lg hover:bg-yellow-300 transition-transform transform hover:scale-105"
+          >
+            Return to Game Hub
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -18,6 +18,7 @@ export default function TeamSelectionClient({
   const [allPokemons, setAllPokemons] = useState<Pokemon[]>([]);
   const [displayedPokemons, setDisplayedPokemons] = useState<Pokemon[]>([]);
   const [offset, setOffset] = useState(0);
+  const [typeOffset, setTypeOffset] = useState(0); // Tracks type-specific pagination
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [types, setTypes] = useState<string[]>([]);
@@ -30,7 +31,7 @@ export default function TeamSelectionClient({
     useTeam(initialTeam);
   const loader = useRef<HTMLDivElement | null>(null);
 
-  // Fetch list of all Pokémon
+  // Fetch lhe first 386 Pokemon
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -52,8 +53,10 @@ export default function TeamSelectionClient({
     fetchAll();
   }, []);
 
-  // Fetch list of types for filter
+  // Fetch types after 386 Pokemon loaded
   useEffect(() => {
+    if (allPokemons.length === 0) return;
+
     fetch("https://pokeapi.co/api/v2/type")
       .then((res) => res.json())
       .then((data) => {
@@ -62,19 +65,23 @@ export default function TeamSelectionClient({
           .filter((t: string) => !["unknown", "shadow"].includes(t));
         setTypes(filteredTypes);
       });
-  }, []);
+  }, [allPokemons]);
 
   //  Handles what happens when user changes type filter
   useEffect(() => {
+    if (allPokemons.length === 0) return;
+
     if (!typeFilter) {
       setDisplayedPokemons(allPokemons.slice(0, PAGE_SIZE));
       setOffset(PAGE_SIZE);
+      setTypeOffset(0);
       return;
     }
 
     // If a type is selected check the cache first
     if (typeCache.current[typeFilter]) {
-      setDisplayedPokemons(typeCache.current[typeFilter]);
+      setDisplayedPokemons(typeCache.current[typeFilter].slice(0, PAGE_SIZE));
+      setTypeOffset(PAGE_SIZE);
       return;
     }
 
@@ -93,10 +100,13 @@ export default function TeamSelectionClient({
           url: p.pokemon.url,
           image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
         };
-      });
+      })
+      // Only include Pokémon that exist in the first 386
+        .filter((p: Pokemon) => p.id <= 386);
 
       typeCache.current[typeFilter] = results; // Save to cache
-      setDisplayedPokemons(results);
+      setDisplayedPokemons(results.slice(0, PAGE_SIZE));
+      setTypeOffset(PAGE_SIZE);
       setLoading(false);
     };
 
@@ -112,26 +122,44 @@ export default function TeamSelectionClient({
 
   // Infinite scroll logic
   const loadMore = () => {
-    if (loading || typeFilter || offset >= allPokemons.length) return;
-    const nextBatch = allPokemons.slice(offset, offset + PAGE_SIZE);
-    setDisplayedPokemons((prev) => [...prev, ...nextBatch]);
-    setOffset((prev) => prev + PAGE_SIZE);
+    if (loading) return;
+
+    if (typeFilter) {
+      const allOfType = typeCache.current[typeFilter] || [];
+      if (typeOffset >= allOfType.length) return;
+
+      setLoading(true); // start loading
+      const nextBatch = allOfType.slice(typeOffset, typeOffset + PAGE_SIZE);
+      setDisplayedPokemons((prev) => [...prev, ...nextBatch]);
+      setTypeOffset((prev) => prev + PAGE_SIZE);
+      setLoading(false); // done loading
+    } else {
+      if (offset >= allPokemons.length) return;
+
+      setLoading(true); // start loading
+      const nextBatch = allPokemons.slice(offset, offset + PAGE_SIZE);
+      setDisplayedPokemons((prev) => [...prev, ...nextBatch]);
+      setOffset((prev) => prev + PAGE_SIZE);
+      setLoading(false); // done loading
+    }
   };
 
   useEffect(() => {
-    if (typeFilter) return; // Disable infinite scroll if a type is selected
+    // Disable infinite scroll if a type is selected
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) loadMore();
       },
-      { threshold: 1 }
+      { threshold: 0.5 } // triggers earlier than fully visible
     );
+
     const currentLoader = loader.current;
     if (currentLoader) observer.observe(currentLoader);
+
     return () => {
       if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [offset, typeFilter]);
+  }, [typeFilter, offset, typeOffset]);
 
   const handleSaveTeam = async () => {
     try {
@@ -192,6 +220,9 @@ export default function TeamSelectionClient({
 
       <div ref={loader} className="h-16 flex justify-center items-center mt-4">
         {!typeFilter && !loading && offset < allPokemons.length && (
+          <span className="text-amber-200">Loading more...</span>
+        )}
+        {typeFilter && !loading && typeOffset < (typeCache.current[typeFilter]?.length || 0) && (
           <span className="text-amber-200">Loading more...</span>
         )}
       </div>
