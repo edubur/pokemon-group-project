@@ -47,3 +47,4 @@ export default async function LeaderboardPage() {
     </main>
   );
 }
+console.log("DATABASE_URL being used:", process.env.DATABASE_URL);
