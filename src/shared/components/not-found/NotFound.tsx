@@ -21,7 +21,7 @@ export default async function NotFoundComponent() {
           </h2>
           {/* Info text */}
           <p className="mt-2 text-base text-amber-200/70">
-            We can't seem to find the page you're looking for.
+            We can&apos;t seem to find the page you&apos;re looking for.
           </p>
           {/* Link back to homepage */}
           <Link

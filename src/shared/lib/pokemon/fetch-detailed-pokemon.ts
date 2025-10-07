@@ -29,14 +29,23 @@ export async function fetchDetailedPokemon(id: number): Promise<BattlePokemon> {
   // Fetches details for each move
   const moveDetails = await Promise.all(
     pokemonData.moves
-      .filter((m: any) =>
-        m.version_group_details.some(
-          (vgd: any) =>
-            vgd.move_learn_method.name === "level-up" &&
-            vgd.version_group.name === "emerald"
-        )
+      .filter(
+        (m: {
+          version_group_details: {
+            move_learn_method: { name: string };
+            version_group: { name: string };
+          }[];
+        }) =>
+          m.version_group_details.some(
+            (vgd: {
+              move_learn_method: { name: string };
+              version_group: { name: string };
+            }) =>
+              vgd.move_learn_method.name === "level-up" &&
+              vgd.version_group.name === "emerald"
+          )
       )
-      .map(async (m: any) => {
+      .map(async (m: { move: { url: string } }) => {
         const moveRes = await fetch(m.move.url);
         return moveRes.json();
       })

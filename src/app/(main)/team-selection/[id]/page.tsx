@@ -9,7 +9,7 @@ interface DetailsPageProps {
 interface Pokemon {
   id: number;
   name: string;
-  sprites: { front_default: string; other: any };
+  sprites: { front_default: string; other: Record<string, unknown> };
   types: { slot: number; type: { name: string } }[];
   abilities: { ability: { name: string }; is_hidden: boolean }[];
   stats: { base_stat: number; stat: { name: string } }[];

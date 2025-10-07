@@ -119,11 +119,13 @@ export function calculateStat(
 }
 
 // Calculates the damage for attacks
+import { Move, BattlePokemon } from "@/features/game-logic/types";
+
 export function calculateDamage(
   level: number,
-  move: any,
-  attacker: any,
-  defender: any
+  move: Move,
+  attacker: BattlePokemon,
+  defender: BattlePokemon
 ): { damage: number; effectiveness: string } {
   if (!move.power) {
     return { damage: 0, effectiveness: "normal" };
@@ -134,8 +136,9 @@ export function calculateDamage(
   const defenseStat =
     move.damage_class.name === "physical" ? "defense" : "special-defense";
 
-  const attack = attacker.stats.find((s: any) => s.name === attackStat).value;
-  const defense = defender.stats.find((s: any) => s.name === defenseStat).value;
+  const attack = attacker.stats.find((s) => s.name === attackStat)?.value ?? 1;
+  const defense =
+    defender.stats.find((s) => s.name === defenseStat)?.value ?? 1;
 
   let damage =
     (((2 * level) / 5 + 2) * move.power * (attack / defense)) / 50 + 2;

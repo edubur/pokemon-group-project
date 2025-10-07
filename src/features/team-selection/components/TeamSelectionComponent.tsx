@@ -37,14 +37,16 @@ export default function TeamSelectionClient({
       setLoading(true);
       const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=386");
       const data = await res.json();
-      const results: Pokemon[] = data.results.map((p: any, index: number) => ({
-        id: index + 1,
-        name: p.name,
-        url: p.url,
-        image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
-          index + 1
-        }.png`,
-      }));
+      const results: Pokemon[] = data.results.map(
+        (p: { name: string; url: string }, index: number) => ({
+          id: index + 1,
+          name: p.name,
+          url: p.url,
+          image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
+            index + 1
+          }.png`,
+        })
+      );
       setAllPokemons(results);
       setDisplayedPokemons(results.slice(0, PAGE_SIZE));
       setOffset(PAGE_SIZE);
@@ -61,7 +63,7 @@ export default function TeamSelectionClient({
       .then((res) => res.json())
       .then((data) => {
         const filteredTypes = data.results
-          .map((t: any) => t.name)
+          .map((t: { name: string }) => t.name)
           .filter((t: string) => !["unknown", "shadow"].includes(t));
         setTypes(filteredTypes);
       });
@@ -90,18 +92,19 @@ export default function TeamSelectionClient({
       setLoading(true);
       const res = await fetch(`https://pokeapi.co/api/v2/type/${typeFilter}`);
       const data = await res.json();
-      const results: Pokemon[] = data.pokemon.map((p: any) => {
-        const id = parseInt(
-          p.pokemon.url.split("/").filter(Boolean).pop() || "0"
-        );
-        return {
-          id,
-          name: p.pokemon.name,
-          url: p.pokemon.url,
-          image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
-        };
-      })
-      // Only include Pokémon that exist in the first 386
+      const results: Pokemon[] = data.pokemon
+        .map((p: { pokemon: { name: string; url: string } }) => {
+          const id = parseInt(
+            p.pokemon.url.split("/").filter(Boolean).pop() || "0"
+          );
+          return {
+            id,
+            name: p.pokemon.name,
+            url: p.pokemon.url,
+            image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+          };
+        })
+        // Only include Pokémon that exist in the first 386
         .filter((p: Pokemon) => p.id <= 386);
 
       typeCache.current[typeFilter] = results; // Save to cache
@@ -159,7 +162,7 @@ export default function TeamSelectionClient({
     return () => {
       if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [typeFilter, offset, typeOffset]);
+  }, [typeFilter, offset, typeOffset, loadMore]);
 
   const handleSaveTeam = async () => {
     try {
@@ -172,8 +175,12 @@ export default function TeamSelectionClient({
       } else {
         throw new Error(result.message);
       }
-    } catch (error: any) {
-      alert(`Error: ${error.message}`);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert("An unknown error occurred.");
+      }
     }
   };
 
@@ -222,9 +229,11 @@ export default function TeamSelectionClient({
         {!typeFilter && !loading && offset < allPokemons.length && (
           <span className="text-amber-200">Loading more...</span>
         )}
-        {typeFilter && !loading && typeOffset < (typeCache.current[typeFilter]?.length || 0) && (
-          <span className="text-amber-200">Loading more...</span>
-        )}
+        {typeFilter &&
+          !loading &&
+          typeOffset < (typeCache.current[typeFilter]?.length || 0) && (
+            <span className="text-amber-200">Loading more...</span>
+          )}
       </div>
 
       <TeamBar

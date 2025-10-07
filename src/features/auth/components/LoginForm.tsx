@@ -74,7 +74,9 @@ export default function LoginForm() {
 
         {/* Link to registration page */}
         <div className="text-center text-sm mt-2">
-          <span className="text-amber-200/80">Don't have an account? </span>
+          <span className="text-amber-200/80">
+            Don&apos;t have an account?{" "}
+          </span>
           <Link
             href="/register"
             className="text-yellow-400 hover:text-yellow-300 font-semibold"

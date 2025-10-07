@@ -56,7 +56,7 @@ export interface BattlePokemon {
   hp: number;
   maxHp: number;
   stats: { name: string; value: number }[];
-  types: any[];
+  types: { slot: number; type: { name: string } }[];
 }
 
 export interface TypedPokemonInfo {

@@ -4,7 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { getSession } from "@/shared/lib/session/session";
 import { prisma } from "@/shared/lib/prisma/prisma";
 import { revalidatePath } from "next/cache";
-import { FormState, ProfilePictureFormState } from "./types";
+import { ProfilePictureFormState } from "./types";
 
 // Cloudinary
 cloudinary.config({
@@ -34,20 +34,22 @@ export async function updateProfilePictureAction(
 
   try {
     // Upload to Cloudinary
-    const result: any = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          {
-            folder: "profile_pictures",
-            transformation: [{ width: 400, height: 400, crop: "fill" }],
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        )
-        .end(buffer);
-    });
+    const result = await new Promise<{ secure_url: string }>(
+      (resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "profile_pictures",
+              transformation: [{ width: 400, height: 400, crop: "fill" }],
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result as { secure_url: string });
+            }
+          )
+          .end(buffer);
+      }
+    );
 
     // Update user avatar in database
     await prisma.user.update({
@@ -64,7 +66,7 @@ export async function updateProfilePictureAction(
       message: "Upload successful!",
       url: result.secure_url,
     };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Failed to upload image." };
   }
 }
@@ -87,7 +89,7 @@ export async function clearProfilePictureAction(): Promise<ProfilePictureFormSta
     revalidatePath("/gamehub");
 
     return { success: true, message: "Picture cleared." };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Failed to clear picture." };
   }
 }

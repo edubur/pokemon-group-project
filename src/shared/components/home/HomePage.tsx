@@ -17,7 +17,7 @@ export default function HomePageComponent() {
 
               <p className="mb-2 text-lg text-amber-200/70 md:text-2xl">
                 Assemble your ultimate team, challenge formidable arenas, and
-                climb <br /> the leaderboard to prove you're the very best.
+                climb <br /> the leaderboard to prove you&apos;re the very best.
               </p>
 
               <p className="mb-15 text-lg text-amber-200/70 md:text-2xl">
