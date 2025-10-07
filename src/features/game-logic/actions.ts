@@ -12,6 +12,17 @@ export async function submitScoreAction(newScore: number) {
     throw new Error("You must be logged in to submit a score.");
   }
 
+// Fetch the user's username
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { username: true },
+  });
+
+  if (!user?.username) {
+    throw new Error("User must have a username to submit a score.");
+  }
+
+
   const existingEntry = await prisma.leaderboardEntry.findUnique({
     where: { userId: session.userId },
   });
@@ -19,8 +30,8 @@ export async function submitScoreAction(newScore: number) {
   if (!existingEntry || newScore > existingEntry.score) {
     await prisma.leaderboardEntry.upsert({
       where: { userId: session.userId },
-      create: { userId: session.userId, score: newScore },
-      update: { score: newScore },
+      create: { userId: session.userId, username: user.username, score: newScore },
+      update: { score: newScore, username: user.username },
     });
     revalidatePath("/gamehub");
     return { success: true, message: "New high score saved!" };

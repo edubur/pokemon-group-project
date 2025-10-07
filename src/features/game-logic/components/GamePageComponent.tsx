@@ -51,6 +51,7 @@ export default function GamePageClient({
     };
 
     sessionStorage.setItem("rankedProgress", JSON.stringify(progress));
+    sessionStorage.removeItem("rankedStats");
     setArenasCompleted(0);
 
     router.push(`/gamehub/arena-battle/${shuffledArenas[0]}`);
@@ -74,7 +75,8 @@ export default function GamePageClient({
   const avatarSrc = user?.avatarUrl || "/default_profile_picture.png";
 
   // Progress percentage for ranked arenas
-  const progressPercentage = (arenasCompleted / 5) * 100;
+  //const progressPercentage = (arenasCompleted / 5) * 100;
+  const progressPercentage = (arenasCompleted / 1) * 100;
 
   return (
     <>
@@ -224,13 +226,13 @@ export default function GamePageClient({
                   <div className="card-actions mt-4">
                     <button
                       onClick={
-                        arenasCompleted > 0 && arenasCompleted < 5
+                        arenasCompleted > 0 && arenasCompleted < 1
                           ? handleContinueRanked
                           : handlePlayRanked
                       }
                       className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400"
                     >
-                      {arenasCompleted > 0 && arenasCompleted < 5
+                      {arenasCompleted > 0 && arenasCompleted < 1
                         ? "CONTINUE"
                         : "PLAY"}
                     </button>
