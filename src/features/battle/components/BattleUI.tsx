@@ -122,7 +122,7 @@ const handleWin = async () => {
     await updateArenasCompletedAction(newArenasCompleted);
 
     // If player cleared all 5 arenas => calculate and submit final score
-    if (newArenasCompleted >= 5) { //now 1 for testing
+    if (newArenasCompleted >= 5) { 
       const { calculateScore } = await import("../../game-logic/lib/calculateScore");
       const finalScore = calculateScore(
         updatedStats.totalTurns,
@@ -137,10 +137,10 @@ const handleWin = async () => {
       sessionStorage.removeItem("rankedStats");
     }
 
-    router.push("/gamehub");
+    dispatch({ type: "SET_PHASE", payload: "game_over" });
   } catch (error) {
     console.error("Failed to save progress or submit score:", error);
-    router.push("/gamehub");
+    dispatch({ type: "SET_PHASE", payload: "game_over" });
   }
 };
 
@@ -395,6 +395,7 @@ const handleWin = async () => {
 
 
   const showReturnButton = phase === "game_over";
+    
 
   // Renders the full battle scene layout
   return (
@@ -457,10 +458,10 @@ const handleWin = async () => {
       </div>
 
         {showReturnButton && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md z-50">
+        <div className="absolute inset-0 flex items-center justify-center z-50">
           <button
             onClick={() => router.push("/gamehub")}
-            className="px-6 py-3 bg-yellow-400 text-black font-bold rounded-xl shadow-lg hover:bg-yellow-300 transition-transform transform hover:scale-105"
+            className="px-6 py-3 bg-yellow-400 border text-black font-bold rounded-xl shadow-lg hover:bg-yellow-300 transition-transform transform hover:scale-105"
           >
             Return to Game Hub
           </button>
