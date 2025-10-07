@@ -1,13 +1,7 @@
 import BattleScene from "@/features/battle/components/BattleUI";
 
-interface ArenaPageProps {
-  params: {
-    arenaType: string;
-  };
-}
 
-export default async function ArenaPage({ params }: ArenaPageProps) {
-  const { arenaType } = await params;
-
+export default function ArenaPage({ params }: { params: { arenaType: string } }) {
+  const { arenaType } = params;
   return <BattleScene arenaType={arenaType} mode="ranked" />;
 }
