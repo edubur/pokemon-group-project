@@ -1,82 +1,38 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import { fetchDetailedPokemon } from "@/shared/lib/pokemon/fetch-detailed-pokemon";
+import { BattlePokemon } from "@/features/game-logic/types";
 
-export interface BattlePokemon {
-  id: number;
-  name: string;
-  frontSprite: string;
-  backSprite: string;
-  moves: string[];
-  hp: number;
-  maxHp: number;
-}
-
-interface PokemonMoveVersionGroupDetail {
-  move_learn_method: { name: string };
-  level_learned_at: number;
-}
-
-interface PokemonMove {
-  move: { name: string; url: string };
-  version_group_details: PokemonMoveVersionGroupDetail[];
-}
-
-interface PokemonSprites {
-  front_default: string | null;
-  back_default: string | null;
-}
-
-interface PokemonAPIResponse {
-  id: number;
-  name: string;
-  sprites: PokemonSprites;
-  moves: PokemonMove[];
-}
-
+// Handles loading the players Pokemon team from localStorage,
+// fetching their full data, and giving it to battle scene
 export function useBattleTeam() {
-  const [team, setTeam] = useState<BattlePokemon[]>([]);
+  const [team, setTeam] = useState<BattlePokemon[]>([]); // Current player team state
 
+  // Load and build the players team from localStorage
   const loadTeam = useCallback(async () => {
-    const stored = localStorage.getItem("unsaved_team") || localStorage.getItem("team");
+    // Gets saved team prefers unsaved team (temporary changes)
+    const stored =
+      localStorage.getItem("unsaved_team") || localStorage.getItem("team");
+    // If nothing is saved clear team
     if (!stored) return setTeam([]);
 
     try {
-      const arr: { id: number; name: string; image: string }[] = JSON.parse(stored);
+      // Parses saved team list
+      const arr: { id: number }[] = JSON.parse(stored);
 
-      const fullTeam: BattlePokemon[] = await Promise.all(
-        arr.map(async (p) => {
-          const resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.id}`);
-          const data: PokemonAPIResponse = await resp.json();
-
-          const moves = data.moves
-            .filter((mv) =>
-              mv.version_group_details.some(
-                (vg) => vg.move_learn_method.name === "level-up"
-              )
-            )
-            .map((mv) => mv.move.name);
-
-          const selected = moves.slice(0, 4);
-          while (selected.length < 4) selected.push("struggle");
-
-          return {
-            id: data.id,
-            name: data.name,
-            frontSprite: data.sprites.front_default ?? "",
-            backSprite: data.sprites.back_default ?? "",
-            moves: selected,
-            hp: 50,
-            maxHp: 50,
-          } as BattlePokemon;
-        })
+      // Fetches detailed Pokemon data for each member
+      const fullTeam = await Promise.all(
+        arr.map((p) => fetchDetailedPokemon(p.id))
       );
 
+      // Stores detailed team in state
       setTeam(fullTeam);
     } catch (err) {
       console.error("Failed to load team:", err);
     }
   }, []);
 
+  // Automatically loads team when the hook mounts
   useEffect(() => {
     loadTeam();
   }, [loadTeam]);

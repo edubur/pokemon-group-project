@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Background from "@/shared/components/ui/Background";
 
 export const metadata: Metadata = {
   title: "Pokemon Battler",
@@ -14,10 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="relative min-h-screen">
-        <Background />
-        <div className="relative z-40">{children}</div>{" "}
-      </body>
+      <body className="relative min-h-screen">{children}</body>
     </html>
   );
 }
