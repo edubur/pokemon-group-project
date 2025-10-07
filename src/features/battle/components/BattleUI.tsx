@@ -43,7 +43,7 @@ export default function BattleScene({
   const {
     phase,
     playerAction,
-    //message,
+    message,
     log,
     isFainting,
     playerIndex,
@@ -351,58 +351,64 @@ const handleWin = async () => {
 
   // Renders the full battle scene layout
   return (
-    <div className="h-screen w-screen bg-black flex items-center justify-center font-mono">
-      <div className="relative aspect-[4/3] h-full max-w-full overflow-hidden">
+    <div className="flex flex-col w-screen h-screen bg-black text-white font-mono">
+      {/* Background */}
+      <div className="flex">
         <BattleBackground arenaType={arenaType} />
+      </div>
+
+      {/* Battle Log */}
+      <div className="flex align-middle">
         <BattleLog messages={log} />
+      </div>
 
-        {/* Enemy Pokemon Sprite */}
-        <PokemonSprite
-          key={state.enemyTeam[enemyIndex].id}
-          pokemon={state.enemyTeam[enemyIndex]}
-          side="enemy"
-          isFainting={isFainting === "enemy"}
-        />
-
-        {/* Player Pokemon Sprite */}
-        <PokemonSprite
-          key={state.playerTeam[playerIndex].id}
-          pokemon={state.playerTeam[playerIndex]}
-          side="player"
-          isFainting={isFainting === "player"}
-        />
-
-        {/* Bottom HUD Info + Action buttons */}
-        <div className="absolute bottom-0 left-0 w-full h-[30%] p-2 flex gap-2">
-          {/* Info box */}
-          <InfoBox
-            state={state}
-            onAttackSelect={(move: Move) => handleTurn(move)}
-            onPokemonSelect={(index: number) =>
-              handleTurn(undefined, { newIndex: index })
-            }
-          />
-
-          {/* Action buttons */}
-          <ActionBox
-            onFight={() =>
-              dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_MOVE" })
-            }
-            onPokemon={() =>
-              dispatch({
-                type: "SET_PLAYER_ACTION",
-                payload: "SELECTING_POKEMON",
-              })
-            }
-            onRun={handleRun}
-            onBack={() =>
-              dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })
-            }
-            isBusy={isBusy}
-            showBack={playerAction !== "IDLE"}
+      {/* Enemy & Player Sprites */}
+      <div className="flex flex-1 w-full items-center justify-between px-4 sm:px-16 z-10">
+        {/* Enemy */}
+        <div className="flex ">
+          <PokemonSprite
+            key={state.enemyTeam[enemyIndex].id}
+            pokemon={state.enemyTeam[enemyIndex]}
+            side="enemy"
+            isFainting={isFainting === "enemy"}
           />
         </div>
+
+        {/* Player */}
+        <div className="w-1/3 sm:w-1/4 flex justify-center">
+          <PokemonSprite
+            key={state.playerTeam[playerIndex].id}
+            pokemon={state.playerTeam[playerIndex]}
+            side="player"
+            isFainting={isFainting === "player"}
+          />
+        </div>
+      </div>
+
+      {/* Bottom HUD */}
+      <div className="w-full p-2 sm:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black/70 z-10">
+        <InfoBox
+          state={state}
+          onAttackSelect={(move: Move) => handleTurn(move)}
+          onPokemonSelect={(index: number) =>
+            handleTurn(undefined, { newIndex: index })
+          }
+        />
+
+        <ActionBox
+          onFight={() =>
+            dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_MOVE" })
+          }
+          onPokemon={() =>
+            dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_POKEMON" })
+          }
+          onRun={handleRun}
+          onBack={() => dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })}
+          isBusy={isBusy}
+          showBack={playerAction !== "IDLE"}
+        />
       </div>
     </div>
   );
 }
+

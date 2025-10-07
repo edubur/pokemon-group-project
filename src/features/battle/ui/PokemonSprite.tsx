@@ -13,38 +13,47 @@ export default function PokemonSprite({
   side: "player" | "enemy";
   isFainting: boolean;
 }) {
-  // Position on screen depending on player or enemy side
+  /**
+   * Use relative % positions + translate-x/y to center
+   * Both player and enemy sprites stay in fixed relative positions
+   * Sprite size is limited via max-w / max-h
+   */
   const positionClass =
-    side === "player" ? "bottom-[25%] left-[18%]" : "top-[-9%] right-[-5%]";
+    side === "player"
+      ? "absolute bottom-[min(35%)] left-[47%] -translate-x-1/2"
+      : "absolute top-[min(6%)] left-[min(80%)] right-[min(15%)] -translate-x-1/2";
 
-  // Selects correct sprite for side
-  // Player uses back sprite and enemy uses animated front sprite
   const spriteUrl =
     side === "player" ? pokemon.backSprite : pokemon.animatedSprite;
+
+  // Adjust size dynamically — player is larger
+  const spriteSize = side === "player" ? 600 : 300;
+
+  // Maximum size limits (can adjust to taste)
+  const maxWidth = side === "player" ? "w-[150px] sm:w-[200px]" : "w-[120px] sm:w-[160px]";
+  const maxHeight = side === "player" ? "h-[150px] sm:h-[200px]" : "h-[120px] sm:h-[160px]";
 
   return (
     <>
       {/* Keyframe animations for idle and faint */}
       <style>{idleAnimation + faintAnimation}</style>
-      <div
-        className={`absolute w-[1000px] h-[500px] transition-transform duration-500 ${positionClass}`}
-      >
-        {/* Displays health bar above Pokemon */}
+
+      <div className={`${positionClass} ${maxWidth} ${maxHeight} flex flex-col items-center`}>
+        {/* Health bar above Pokémon */}
         <HealthBar pokemon={pokemon} side={side} />
 
-        {/* Pokemon sprite with animation */}
-        <div
-          className={`absolute bottom-0 left-1/2 -translate-x-1/2 ${
-            isFainting ? "animate-faint" : "animate-idle"
-          }`}
-        >
-          <Image
+        {/* Sprite with animation */}
+        <div className={`flex ${isFainting ? "animate-faint" : "animate-idle"}`}>
+           <Image
             src={spriteUrl}
             alt={pokemon.name}
-            width={side === "player" ? 500 : 300}
-            height={side === "player" ? 500 : 200}
+            width={spriteSize}
+            height={spriteSize}
             className="object-contain drop-shadow-[0_0_10px_rgba(255,255,0,0.3)]"
-            style={{ imageRendering: "pixelated" }}
+            style={{
+              imageRendering: "pixelated",
+              transform: side === "player" ? "scale(2.5)" : "scale(1.75)",
+            }}
             unoptimized
           />
         </div>
