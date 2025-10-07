@@ -43,7 +43,7 @@ export default function BattleScene({
   const {
     phase,
     playerAction,
-    //message,
+    message,
     log,
     isFainting,
     playerIndex,
@@ -107,7 +107,7 @@ const handleWin = async () => {
     await updateArenasCompletedAction(newArenasCompleted);
 
     // If player cleared all 5 arenas => calculate and submit final score
-    if (newArenasCompleted >= 1) { //now at 1 for testing
+    if (newArenasCompleted >= 5) { //now 1 for testing
       const { calculateScore } = await import("../../game-logic/lib/calculateScore");
       const finalScore = calculateScore(
         updatedStats.totalTurns,
@@ -153,7 +153,7 @@ const handleWin = async () => {
         type: "ADD_LOG",
         payload: `Come back, ${capitalize(currentPlayer.name)}!`,
       });
-      await delay(500);
+      await delay(750);
       dispatch({
         type: "SET_ACTIVE_POKEMON",
         payload: { team: "player", index: isSwitching.newIndex },
@@ -163,7 +163,7 @@ const handleWin = async () => {
         type: "ADD_LOG",
         payload: `Go, ${capitalize(newPlayer.name)}!`,
       });
-      await delay(500);
+      await delay(750);
       // Case 2 Player attacks
     } else if (playerMove) {
       dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" });
@@ -172,7 +172,7 @@ const handleWin = async () => {
       )} used ${capitalize(playerMove.name)}!`;
       dispatch({ type: "SET_MESSAGE", payload: playerAttackMessage });
       dispatch({ type: "ADD_LOG", payload: playerAttackMessage });
-      await delay(500);
+      await delay(750);
       const currentEnemy =
         stateRef.current.enemyTeam[stateRef.current.enemyIndex];
 
@@ -200,7 +200,7 @@ const handleWin = async () => {
         const message = `It's ${effectiveness.replace("-", " ")}!`;
         dispatch({ type: "SET_MESSAGE", payload: message });
         dispatch({ type: "ADD_LOG", payload: message });
-        await delay(500);
+        await delay(750);
       }
 
       // Handles enemy fainting
@@ -214,7 +214,7 @@ const handleWin = async () => {
           payload: `${capitalize(currentEnemy.name)} fainted!`,
         });
         dispatch({ type: "TRIGGER_FAINT", payload: "enemy" });
-        await delay(1000);
+        await delay(1500);
 
         // Checks for remaining enemies
         const nextEnemyIndex = stateRef.current.enemyTeam.findIndex(
@@ -231,7 +231,7 @@ const handleWin = async () => {
           const msg = `Enemy sent out ${capitalize(nextEnemy.name)}!`;
           dispatch({ type: "SET_MESSAGE", payload: msg });
           dispatch({ type: "ADD_LOG", payload: msg });
-          await delay(500);
+          await delay(750);
           dispatch({ type: "SET_PHASE", payload: "player_turn" });
           return;
 
@@ -240,7 +240,7 @@ const handleWin = async () => {
           dispatch({ type: "SET_MESSAGE", payload: "You won the battle!" });
           dispatch({ type: "ADD_LOG", payload: "You won!" });
           dispatch({ type: "SET_PHASE", payload: "game_over" });
-          await delay(1000);
+          await delay(1200);
           handleWin();
           return;
         }
@@ -248,7 +248,7 @@ const handleWin = async () => {
     }
 
     // Wait before enemy attacks
-    await delay(1000);
+    await delay(1500);
 
     const playerAfterAttack =
       stateRef.current.playerTeam[stateRef.current.playerIndex];
@@ -268,7 +268,7 @@ const handleWin = async () => {
     dispatch({ type: "SET_MESSAGE", payload: enemyAttackMsg });
     dispatch({ type: "ADD_LOG", payload: enemyAttackMsg });
 
-    await delay(1000);
+    await delay(1200);
 
     // Calculates enemy attack damage
     const { damage: playerDamage, effectiveness: playerEffect } =
@@ -290,7 +290,7 @@ const handleWin = async () => {
       const message = `It was ${playerEffect.replace("-", " ")}!`;
       dispatch({ type: "SET_MESSAGE", payload: message });
       dispatch({ type: "ADD_LOG", payload: message });
-      await delay(500);
+      await delay(750);
     }
 
     // Handles player fainting
@@ -304,7 +304,7 @@ const handleWin = async () => {
         payload: `${capitalize(playerAfterAttack.name)} fainted!`,
       });
       dispatch({ type: "TRIGGER_FAINT", payload: "player" });
-      await delay(1000);
+      await delay(1500);
       const nextPlayerIndex = stateRef.current.playerTeam.findIndex(
         (p) => p.hp > 0
       );
@@ -351,58 +351,64 @@ const handleWin = async () => {
 
   // Renders the full battle scene layout
   return (
-    <div className="h-screen w-screen bg-black flex items-center justify-center font-mono">
-      <div className="relative aspect-[4/3] h-full max-w-full overflow-hidden">
+    <div className="flex flex-col w-screen h-screen bg-black text-white font-mono">
+      {/* Background */}
+      <div className="flex">
         <BattleBackground arenaType={arenaType} />
+      </div>
+
+      {/* Battle Log */}
+      <div className="flex align-middle">
         <BattleLog messages={log} />
+      </div>
 
-        {/* Enemy Pokemon Sprite */}
-        <PokemonSprite
-          key={state.enemyTeam[enemyIndex].id}
-          pokemon={state.enemyTeam[enemyIndex]}
-          side="enemy"
-          isFainting={isFainting === "enemy"}
-        />
-
-        {/* Player Pokemon Sprite */}
-        <PokemonSprite
-          key={state.playerTeam[playerIndex].id}
-          pokemon={state.playerTeam[playerIndex]}
-          side="player"
-          isFainting={isFainting === "player"}
-        />
-
-        {/* Bottom HUD Info + Action buttons */}
-        <div className="absolute bottom-0 left-0 w-full h-[30%] p-2 flex gap-2">
-          {/* Info box */}
-          <InfoBox
-            state={state}
-            onAttackSelect={(move: Move) => handleTurn(move)}
-            onPokemonSelect={(index: number) =>
-              handleTurn(undefined, { newIndex: index })
-            }
-          />
-
-          {/* Action buttons */}
-          <ActionBox
-            onFight={() =>
-              dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_MOVE" })
-            }
-            onPokemon={() =>
-              dispatch({
-                type: "SET_PLAYER_ACTION",
-                payload: "SELECTING_POKEMON",
-              })
-            }
-            onRun={handleRun}
-            onBack={() =>
-              dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })
-            }
-            isBusy={isBusy}
-            showBack={playerAction !== "IDLE"}
+      {/* Enemy & Player Sprites */}
+      <div className="flex flex-1 w-full items-center justify-between px-4 sm:px-16 z-10">
+        {/* Enemy */}
+        <div className="flex ">
+          <PokemonSprite
+            key={state.enemyTeam[enemyIndex].id}
+            pokemon={state.enemyTeam[enemyIndex]}
+            side="enemy"
+            isFainting={isFainting === "enemy"}
           />
         </div>
+
+        {/* Player */}
+        <div className="w-1/3 sm:w-1/4 flex justify-center">
+          <PokemonSprite
+            key={state.playerTeam[playerIndex].id}
+            pokemon={state.playerTeam[playerIndex]}
+            side="player"
+            isFainting={isFainting === "player"}
+          />
+        </div>
+      </div>
+
+      {/* Bottom HUD */}
+      <div className="w-full p-2 sm:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black/70 z-10">
+        <InfoBox
+          state={state}
+          onAttackSelect={(move: Move) => handleTurn(move)}
+          onPokemonSelect={(index: number) =>
+            handleTurn(undefined, { newIndex: index })
+          }
+        />
+
+        <ActionBox
+          onFight={() =>
+            dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_MOVE" })
+          }
+          onPokemon={() =>
+            dispatch({ type: "SET_PLAYER_ACTION", payload: "SELECTING_POKEMON" })
+          }
+          onRun={handleRun}
+          onBack={() => dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" })}
+          isBusy={isBusy}
+          showBack={playerAction !== "IDLE"}
+        />
       </div>
     </div>
   );
 }
+

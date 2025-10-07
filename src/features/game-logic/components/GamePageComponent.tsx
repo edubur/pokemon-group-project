@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useRef, useEffect, useState } from "react";
@@ -75,8 +76,8 @@ export default function GamePageClient({
   const avatarSrc = user?.avatarUrl || "/default_profile_picture.png";
 
   // Progress percentage for ranked arenas
-  //const progressPercentage = (arenasCompleted / 5) * 100;
-  const progressPercentage = (arenasCompleted / 1) * 100;
+  const progressPercentage = (arenasCompleted / 5) * 100;
+  // const progressPercentage = (arenasCompleted / 1) * 100; for testing
 
   return (
     <>

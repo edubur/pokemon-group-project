@@ -51,7 +51,7 @@ export default function InfoBox({
                 <img
                   src={poke.frontSprite}
                   alt={poke.name}
-                  className="w-10 h-10"
+                  className="w-full max-w-[64px] h-auto object-contain"
                 />
                 {/* Name and HP bar */}
                 <div className="flex flex-col items-start w-full">
