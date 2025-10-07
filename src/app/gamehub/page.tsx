@@ -6,9 +6,11 @@ import {
   getUserTeam,
 } from "@/features/game-logic/lib/data";
 import { redirect } from "next/navigation";
+import { getSession } from "@/shared/lib/session/session";
 
 export default async function GamePage() {
   const user = await getCurrentUser();
+  const session = await getSession();
 
   if (!user) {
     redirect("/login");
@@ -28,6 +30,7 @@ export default async function GamePage() {
       rank={rank}
       team={team}
       leaderboard={leaderboard}
+      isLoggedIn={!!session}
     />
   );
 }

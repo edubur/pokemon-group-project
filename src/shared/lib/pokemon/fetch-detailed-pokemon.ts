@@ -1,4 +1,4 @@
-import { BattlePokemon } from "@/features/battle/hooks/useBattleTeam";
+import { BattlePokemon } from "@/features/game-logic/types";
 import { calculateStat } from "@/features/battle/lib/mechanics";
 
 interface PokeApiStat {
