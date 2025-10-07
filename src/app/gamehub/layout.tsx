@@ -1,9 +1,11 @@
-import React from "react";
-
-export default function GamehubLayout({
+export default async function GamehubLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <main className="relative z-40">{children}</main>
+    </>
+  );
 }
