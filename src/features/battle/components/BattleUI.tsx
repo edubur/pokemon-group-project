@@ -43,7 +43,7 @@ export default function BattleScene({
   const {
     phase,
     playerAction,
-    message,
+    //message,
     log,
     isFainting,
     playerIndex,
@@ -64,31 +64,76 @@ export default function BattleScene({
     }
   }, [playerTeam, enemyTeam, state.phase, dispatch, reloadTeam]);
 
-  // Handles victory condition
-  const handleWin = async () => {
-    if (mode === "ranked") {
-      try {
-        const progressString = sessionStorage.getItem("rankedProgress");
-        if (progressString) {
-          const progress = JSON.parse(progressString);
-          const newArenasCompleted = progress.completed + 1;
-          await updateArenasCompletedAction(newArenasCompleted);
-          sessionStorage.setItem(
-            "rankedProgress",
-            JSON.stringify({ ...progress, completed: newArenasCompleted })
-          );
-        }
-      } catch (error) {
-        console.error("Failed to save progress:", error);
-      }
+// Handles victory condition
+const handleWin = async () => {
+  try {
+    const progressString = sessionStorage.getItem("rankedProgress");
+    const statsString = sessionStorage.getItem("rankedStats");
+
+    const progress = progressString
+      ? JSON.parse(progressString)
+      : { arenas: [], completed: 0 };
+
+    // Load previous stats or start fresh
+    const stats = statsString
+      ? JSON.parse(statsString)
+      : { totalTurns: 0, totalHpLost: 0 };
+
+    // Calculate stats for this battle
+    const turnsThisBattle = stateRef.current.log.filter((msg) =>
+      msg.includes("used")
+    ).length; // crude but effective way to count turns
+    const totalPlayerMaxHp = stateRef.current.playerTeam.reduce(
+      (sum, p) => sum + p.maxHp,
+      0
+    );
+    const totalPlayerHpRemaining = stateRef.current.playerTeam.reduce(
+      (sum, p) => sum + p.hp,
+      0
+    );
+    const hpLostThisBattle = totalPlayerMaxHp - totalPlayerHpRemaining;
+
+    const updatedStats = {
+      totalTurns: stats.totalTurns + turnsThisBattle,
+      totalHpLost: stats.totalHpLost + hpLostThisBattle,
+    };
+
+    sessionStorage.setItem("rankedStats", JSON.stringify(updatedStats));
+
+    // Update progress
+    const newArenasCompleted = progress.completed + 1;
+    progress.completed = newArenasCompleted;
+    sessionStorage.setItem("rankedProgress", JSON.stringify(progress));
+    await updateArenasCompletedAction(newArenasCompleted);
+
+    // If player cleared all 5 arenas => calculate and submit final score
+    if (newArenasCompleted >= 1) { //now at 1 for testing
+      const { calculateScore } = await import("../../game-logic/lib/calculateScore");
+      const finalScore = calculateScore(
+        updatedStats.totalTurns,
+        updatedStats.totalHpLost
+      );
+
+      const { submitScoreAction } = await import("@/features/game-logic/actions");
+      await submitScoreAction(finalScore);
+
+      // Clean up
+      sessionStorage.removeItem("rankedProgress");
+      sessionStorage.removeItem("rankedStats");
     }
+
     router.push("/gamehub");
-  };
+  } catch (error) {
+    console.error("Failed to save progress or submit score:", error);
+    router.push("/gamehub");
+  }
+};
 
   // Handles run condition
   const handleRun = async () => {
     if (mode === "ranked") {
       sessionStorage.removeItem("rankedProgress");
+      sessionStorage.removeItem("rankedStats");
       await resetArenasCompletedAction();
     }
     router.push("/gamehub");
@@ -108,7 +153,7 @@ export default function BattleScene({
         type: "ADD_LOG",
         payload: `Come back, ${capitalize(currentPlayer.name)}!`,
       });
-      await delay(1200);
+      await delay(500);
       dispatch({
         type: "SET_ACTIVE_POKEMON",
         payload: { team: "player", index: isSwitching.newIndex },
@@ -118,7 +163,7 @@ export default function BattleScene({
         type: "ADD_LOG",
         payload: `Go, ${capitalize(newPlayer.name)}!`,
       });
-      await delay(1200);
+      await delay(500);
       // Case 2 Player attacks
     } else if (playerMove) {
       dispatch({ type: "SET_PLAYER_ACTION", payload: "IDLE" });
@@ -127,7 +172,7 @@ export default function BattleScene({
       )} used ${capitalize(playerMove.name)}!`;
       dispatch({ type: "SET_MESSAGE", payload: playerAttackMessage });
       dispatch({ type: "ADD_LOG", payload: playerAttackMessage });
-      await delay(1500);
+      await delay(500);
       const currentEnemy =
         stateRef.current.enemyTeam[stateRef.current.enemyIndex];
 
@@ -155,7 +200,7 @@ export default function BattleScene({
         const message = `It's ${effectiveness.replace("-", " ")}!`;
         dispatch({ type: "SET_MESSAGE", payload: message });
         dispatch({ type: "ADD_LOG", payload: message });
-        await delay(1200);
+        await delay(500);
       }
 
       // Handles enemy fainting
@@ -169,7 +214,7 @@ export default function BattleScene({
           payload: `${capitalize(currentEnemy.name)} fainted!`,
         });
         dispatch({ type: "TRIGGER_FAINT", payload: "enemy" });
-        await delay(2000);
+        await delay(1000);
 
         // Checks for remaining enemies
         const nextEnemyIndex = stateRef.current.enemyTeam.findIndex(
@@ -186,7 +231,7 @@ export default function BattleScene({
           const msg = `Enemy sent out ${capitalize(nextEnemy.name)}!`;
           dispatch({ type: "SET_MESSAGE", payload: msg });
           dispatch({ type: "ADD_LOG", payload: msg });
-          await delay(1500);
+          await delay(500);
           dispatch({ type: "SET_PHASE", payload: "player_turn" });
           return;
 
@@ -195,7 +240,7 @@ export default function BattleScene({
           dispatch({ type: "SET_MESSAGE", payload: "You won the battle!" });
           dispatch({ type: "ADD_LOG", payload: "You won!" });
           dispatch({ type: "SET_PHASE", payload: "game_over" });
-          await delay(2000);
+          await delay(1000);
           handleWin();
           return;
         }
@@ -203,7 +248,7 @@ export default function BattleScene({
     }
 
     // Wait before enemy attacks
-    await delay(2000);
+    await delay(1000);
 
     const playerAfterAttack =
       stateRef.current.playerTeam[stateRef.current.playerIndex];
@@ -223,7 +268,7 @@ export default function BattleScene({
     dispatch({ type: "SET_MESSAGE", payload: enemyAttackMsg });
     dispatch({ type: "ADD_LOG", payload: enemyAttackMsg });
 
-    await delay(1500);
+    await delay(1000);
 
     // Calculates enemy attack damage
     const { damage: playerDamage, effectiveness: playerEffect } =
@@ -245,7 +290,7 @@ export default function BattleScene({
       const message = `It was ${playerEffect.replace("-", " ")}!`;
       dispatch({ type: "SET_MESSAGE", payload: message });
       dispatch({ type: "ADD_LOG", payload: message });
-      await delay(1200);
+      await delay(500);
     }
 
     // Handles player fainting
@@ -259,7 +304,7 @@ export default function BattleScene({
         payload: `${capitalize(playerAfterAttack.name)} fainted!`,
       });
       dispatch({ type: "TRIGGER_FAINT", payload: "player" });
-      await delay(2000);
+      await delay(1000);
       const nextPlayerIndex = stateRef.current.playerTeam.findIndex(
         (p) => p.hp > 0
       );
