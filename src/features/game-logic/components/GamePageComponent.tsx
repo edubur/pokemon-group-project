@@ -272,13 +272,13 @@ export default function GamePageClient({
                   <div className="card-actions mt-4">
                     <button
                       onClick={
-                        arenasCompleted > 0 && arenasCompleted < 1
+                        arenasCompleted > 0 && arenasCompleted < 5
                           ? handleContinueRanked
                           : handlePlayRanked
                       }
                       className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400"
                     >
-                      {arenasCompleted > 0 && arenasCompleted < 1
+                      {arenasCompleted > 0 && arenasCompleted < 5
                         ? "CONTINUE"
                         : "PLAY"}
                     </button>
