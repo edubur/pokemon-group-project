@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { DetailsPageProps } from "@/features/team-selection/types";
-import { PokemonSprites } from "@/features/team-selection/types";
 import { Pokemon } from "@/features/team-selection/types";
 import { useParams } from "next/navigation";
 

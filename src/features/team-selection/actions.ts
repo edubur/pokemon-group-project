@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { getSession } from "@/shared/lib/session/session";
 import { prisma } from "@/shared/lib/prisma/prisma";
 
+import { z } from "zod";
+
+const TeamSchema = z.object({
+  pokemonIds: z.array(z.number()).max(6, "Team cannot have more than 6 Pokémon."),
+});
+
 // Save Team
 export async function saveTeamAction(pokemonIds: number[]) {
   // Get current user session
@@ -12,9 +18,15 @@ export async function saveTeamAction(pokemonIds: number[]) {
     throw new Error("You must be logged in to save a team.");
   }
 
-  // Max Team size 6
-  if (pokemonIds.length > 6) {
-    throw new Error("Team cannot have more than 6 Pokémon.");
+  const validatedFields = TeamSchema.safeParse({ pokemonIds });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message:
+        validatedFields.error.flatten().fieldErrors.pokemonIds?.[0] ??
+        "Validation failed.",
+    };
   }
 
   try {
@@ -22,7 +34,7 @@ export async function saveTeamAction(pokemonIds: number[]) {
     await prisma.user.update({
       where: { id: session.userId },
       data: {
-        roster: pokemonIds,
+        roster: validatedFields.data.pokemonIds,
       },
     });
 

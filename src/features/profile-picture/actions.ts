@@ -13,6 +13,30 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+import { z } from "zod";
+
+const MAX_SIZE = 2 * 1024 * 1024;
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
+const ProfilePictureSchema = z.object({
+  profilePicture: z
+    .any()
+    .refine((file) => file?.size > 0, "No file selected.")
+    .refine(
+      (file) => file?.size <= MAX_SIZE,
+      "File is too large. Maximum allowed size is 2MB."
+    )
+    .refine(
+      (file) => ALLOWED_TYPES.includes(file?.type),
+      "Invalid file type. Only JPG, PNG, and WEBP are allowed."
+    ),
+});
+
 // Update Profile Picture
 export async function updateProfilePictureAction(
   previousState: ProfilePictureFormState,
@@ -23,13 +47,22 @@ export async function updateProfilePictureAction(
     return { success: false, message: "You must be logged in." };
   }
 
-  // Get file from form data
-  const file = formData.get("profilePicture") as File;
-  if (!file || file.size === 0) {
-    return { success: false, message: "No file selected." };
+  const validatedFields = ProfilePictureSchema.safeParse({
+    profilePicture: formData.get("profilePicture"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message:
+        validatedFields.error.flatten().fieldErrors.profilePicture?.[0] ??
+        "Validation failed.",
+    };
   }
 
-  const arrayBuffer = await file.arrayBuffer();
+  const { profilePicture } = validatedFields.data;
+
+  const arrayBuffer = await profilePicture.arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
 
   try {
