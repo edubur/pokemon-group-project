@@ -31,6 +31,9 @@ export default function GamePageClient({
   // Ref for avatar upload modal
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const router = useRouter();
+  const [isVideoVisible, setIsVideoVisible] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const videoEndCallback = useRef<(() => void | Promise<void>) | null>(null);
 
   // Local state for tracking arenas completed in ranked mode
   const [arenasCompleted, setArenasCompleted] = useState(
@@ -42,8 +45,7 @@ export default function GamePageClient({
     setArenasCompleted(user?.arenasCompleted || 0);
   }, [user?.arenasCompleted]);
 
-  // Starts new Ranked session
-  const handlePlayRanked = async () => {
+  const startRankedGame = async () => {
     await resetArenasCompletedAction();
 
     const arenas = ["fire", "water", "grass", "rock", "electric"];
@@ -61,8 +63,12 @@ export default function GamePageClient({
     router.push(`/gamehub/arena-battle/${shuffledArenas[0]}`);
   };
 
-  // Handles continue Ranked game
-  const handleContinueRanked = () => {
+  const handlePlayRanked = () => {
+    videoEndCallback.current = startRankedGame;
+    setIsVideoVisible(true);
+  };
+
+  const continueRankedGame = () => {
     const progressString = sessionStorage.getItem("rankedProgress");
     if (progressString) {
       const progress = JSON.parse(progressString);
@@ -72,7 +78,21 @@ export default function GamePageClient({
         return;
       }
     }
-    handlePlayRanked();
+    startRankedGame();
+  };
+
+  const handleContinueRanked = () => {
+    videoEndCallback.current = continueRankedGame;
+    setIsVideoVisible(true);
+  };
+
+  const handlePlayUnranked = () => {
+    videoEndCallback.current = () => {
+      const arenas = ["fire", "water", "grass", "rock", "electric"];
+      const randomArena = arenas[Math.floor(Math.random() * arenas.length)];
+      router.push(`/gamehub/arena-battle/${randomArena}`);
+    };
+    setIsVideoVisible(true);
   };
 
   // Default avatar if user has none
@@ -84,6 +104,41 @@ export default function GamePageClient({
 
   return (
     <>
+      {isVideoVisible && (
+        <video
+          src="/Start_fight_animation.webm"
+          autoPlay
+          onEnded={() => {
+            setIsVideoVisible(false);
+            setIsRedirecting(true);
+            if (videoEndCallback.current) {
+              videoEndCallback.current();
+            }
+          }}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            objectFit: "cover",
+            zIndex: 9999,
+          }}
+        />
+      )}
+      {isRedirecting && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "black",
+            zIndex: 9998,
+          }}
+        />
+      )}
       <Background />
       <Navbar isLoggedIn={isLoggedIn} />
       {/* Main layout */}
@@ -242,7 +297,10 @@ export default function GamePageClient({
                     ranked!
                   </p>
                   <div className="card-actions">
-                    <button className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400">
+                    <button
+                      onClick={handlePlayUnranked}
+                      className="rounded-2xl bg-amber-200/70 px-6 py-2 text-lg font-bold text-gray-900 transition-transform hover:scale-105 hover:bg-yellow-400"
+                    >
                       PLAY
                     </button>
                   </div>
